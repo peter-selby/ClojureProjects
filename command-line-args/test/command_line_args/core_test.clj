@@ -12,7 +12,7 @@
            (parse-args args)))))
 
 (deftest a-test
-  (testing "FIXME, I fail."
+  (testing "The test test."
     (is (= 1
            1))))
 
@@ -31,10 +31,10 @@
     (is (= (keywordize ["a" 3 2])
            [:a 3]))))
 
-(deftest d-test
-  (testing "dynamic binding and let shadowing"
-    (is (= v
-           4))))
+;; (deftest d-test
+;;   (testing "dynamic binding and let shadowing"
+;;     (is (= v
+;;            4))))
 
 (deftest e-001-test
   (testing "count on vectors"

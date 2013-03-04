@@ -1,5 +1,10 @@
 (ns command-line-args.core)
 
+(defn -main
+  "I am the canonical ideal."
+  [& args]
+  (println "Hello, World!"))
+
 (defn parse-args [args]
   (into {} (map (fn [[k v]]
                   [(keyword (.replace k "--" "")) v])
@@ -35,11 +40,11 @@
 (defn f4 []
   (def v 4))
 
-(println "(= v 1) ~~> " (= v 1))
-(f2)
-(f3)
-(f4)
-(println "(= v 4) ~~> " (= v 4))
+;; (println "(= v 1) ~~> " (= v 1))
+;; (f2)
+;; (f3)
+;; (f4)
+;; (println "(= v 4) ~~> " (= v 4))
 
 (defn power [base & exponents]
   (reduce #(Math/pow %1 %2) base exponents))
