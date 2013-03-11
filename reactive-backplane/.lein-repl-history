@@ -1,0 +1,6 @@
+(clojuredocs 'assoc)
+(clojuredocs "assoc")
+(user/clojuredocs "assoc")
+(doc assoc)
+(clojuredocs assoc)
+(clojuredocs require)
