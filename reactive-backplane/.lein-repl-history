@@ -4,3 +4,23 @@
 (doc assoc)
 (clojuredocs assoc)
 (clojuredocs require)
+(clojuredoc doseq)
+(clojuredocs doseq)
+(doc prn)
+(doc println)
+(doc pr)
+(map list {:1 1 :2 2} {:3 3 :4 4})
+{:1 1}
+{:4 4}
+[:4 4]
+(map pr {:1 1})
+(doseq [x {:1 1}] (pr x))
+(doseq [x {:1 1}] (prn x))
+(doseq [x {:1 1 :2 2}] (prn x))
+(map pr {:1 1 :2 2})
+(map prn {:1 1 :2 2})
+(map str {:1 1 :2 2})
+(doc :use)
+(doc use)
+(doc refer)
+(doc require)
