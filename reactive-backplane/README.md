@@ -1,6 +1,11 @@
 # hello-world
 
 FIXME
+see
+https://github.com/weavejester/compojure/wiki/Getting-Started
+
+try to incorporate the now-outdated
+http://mmcgrana.github.com/2010/08/clojure-rest-api.html
 
 ## Prerequisites
 

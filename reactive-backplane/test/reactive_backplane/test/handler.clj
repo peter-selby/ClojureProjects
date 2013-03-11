@@ -1,7 +1,7 @@
-(ns hello-world.test.handler
+(ns reactive-backplane.test.handler
   (:use clojure.test
         ring.mock.request  
-        hello-world.handler))
+        reactive-backplane.handler))
 
 (deftest test-app
   (testing "main route"
