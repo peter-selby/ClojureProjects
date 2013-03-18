@@ -32,5 +32,6 @@
     (is (thrown? clojure.lang.ArityException (e/put)))
     (is (thrown? clojure.lang.ArityException (e/put 42)))
     (is (thrown? clojure.lang.ArityException (e/list 42)))
+    (is (thrown? IllegalArgumentException (e/put 42 5)))
     ))
 
