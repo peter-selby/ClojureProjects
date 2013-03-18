@@ -113,3 +113,9 @@ elems
 (e/put 'x [:a 5])
 (e/list)
 (e/get 'x)
+ls -la
+(ns user (:use [reactive-backplane.elem :as e]))
+(e/put 37 {})
+(e/get 37)
+(ns user (:use [reactive-backplane.elem :as e]))
+(e/put 42 [])
