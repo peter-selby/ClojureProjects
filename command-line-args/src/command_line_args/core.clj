@@ -3,7 +3,8 @@
 (defn -main
   "I am the canonical ideal."
   [& args]
-  (println "Hello, World!"))
+  (println "Hello, World!")
+  (println args))
 
 (defn parse-args [args]
   (into {} (map (fn [[k v]]

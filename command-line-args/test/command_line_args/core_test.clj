@@ -17,24 +17,34 @@
            1))))
 
 (deftest b-test
-  (testing "keywordize [\"a\"] = [:a nil] -- missing value defaults to nil"
+  (testing "keywordize [\"a\"] = [:a nil] -- missing value defaults to nil."
     (is (= (keywordize ["a"])
            [:a nil]))))
 
 (deftest c-001-test
-  (testing "(keywordize [\"a\" 1 \"b\" 2]) -- extra values ignored"
+  (testing "(keywordize [\"a\" 1 \"b\" 2]) -- extra key-value pairs ignored."
     (is (= (keywordize ["a" 1 "b" 2])
            [:a 1]))))
 
 (deftest c-002-test
-  (testing "(keywordize [\"a\" 3 2]) -- extra values ignored"
+  (testing "(keywordize [\"a\" 3 2]) -- extra values ignored."
     (is (= (keywordize ["a" 3 2])
            [:a 3]))))
 
-;; (deftest d-test
-;;   (testing "dynamic binding and let shadowing"
-;;     (is (= v
-;;            4))))
+;; UDIAGNOSED PROBLEM: If I uncomment the following and let it fail,
+;; then the nrepl test framework seems to get confused. It continues
+;; to report failures, one more for each iteration of the test via C-c
+;; C-,. Quitting and restarting the nrepl fixes it -- C-x C-b, switch
+;; to nrepl buffer, d on every line beginning with "*nrepl", x, y, y,
+;; y, M-x nrepl-jack-in -- but this is really draconian. I do not know
+;; if this is a bug with nrepl or with my tests. If I can prove it's a
+;; bug in my tests, then "fixtures" might be a good way to fix it.
+;; TODO.
+
+(deftest d-test
+  (testing "dynamic binding and let shadowing"
+    (is (= v
+           4))))
 
 (deftest e-001-test
   (testing "count on vectors"
@@ -53,6 +63,10 @@
                 [5 6]
                 [1 2 3 4])
            [8 12]))))
+
+(deftest f-001-test
+  (is (= 1 1))
+  (is (= 2 2)))
 
 (defn parting
   "returns a String containing a parting salutation, an anti-greeting
