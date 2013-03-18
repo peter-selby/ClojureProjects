@@ -17,7 +17,9 @@
     (is (= (e/get    42       ) {:a 7}     ) "Value for a key.")
     (is (= (e/get    37       ) nil        ) "Test another missing key.")
     (is (= (e/put    37 [:b 8]) {:b 8}     ) "When putting, produce only the value put.")
-    (is (= (e/list            ) {37 {:b 8}, 42 {:a 7}})) "Show entire service state as a map."
+    (is (= (e/list            ) {37 {:b 8}, 42 {:a 7}}) "Show entire service state as a map.")
+    (is (= (e/put    37 {:b 8}) {:b 8}     ) "Permissible to put maps.")
+    (is (= (e/list            ) {37 {:b 8}, 42 {:a 7}}) "Maps equivalent to vector pairs.")
     (is (= (e/delete 42       ) {:a 7}     ) "Delete produces the value deleted.") 
     (is (= (e/get    42       ) nil        ) "Key should be missing after delete.")
     (is (= (e/put    42 {}    ) {}         ) "Permissible to \"put\" an empty map.")
@@ -34,7 +36,8 @@
     (is (thrown? clojure.lang.ArityException (e/put)))
     (is (thrown? clojure.lang.ArityException (e/put 42)))
     (is (thrown? clojure.lang.ArityException (e/list 42)))
-    (is (thrown? IllegalArgumentException    (e/put 42 5)))
-    (is (thrown? IllegalArgumentException    (e/put 42 [])))
+    (is (thrown? clojure.lang.ArityException (e/delete)))
+    (is (thrown? IllegalArgumentException    (e/put 42 5))  "Impermissable to put numbers.")
+    (is (thrown? IllegalArgumentException    (e/put 42 [])) "Impermissable to put empty vectors.")
     ))
 
