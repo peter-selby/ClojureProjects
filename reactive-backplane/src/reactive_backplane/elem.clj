@@ -1,6 +1,11 @@
 (ns reactive-backplane.elem
   (:refer-clojure :exclude (list get delete)))
 
+;;; Puttable, two-level map
+;;; http://stackoverflow.com/questions/630453/put-vs-post-in-rest
+
+
+;;; Singleton atom-map
 (def elems
   "Public singleton atom containing the time-varying state of the
 web-service in the form of all key-value pairs that have been PUT."

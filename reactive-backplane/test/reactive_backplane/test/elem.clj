@@ -17,9 +17,11 @@
     (is (= (e/get    42       ) {:a 7}     ) "Value for a key.")
     (is (= (e/get    37       ) nil        ) "Test another missing key.")
     (is (= (e/put    37 [:b 8]) {:b 8}     ) "When putting, produce only the value put.")
-    (is (= (e/list            ) {37 {:b 8}, 42 {:a 7}}) "Show entire service state as a map.")
+    (is (= (e/list            ) {37 {:b 8}, 42 {:a 7}}
+                                           ) "Show entire service state as a map.")
     (is (= (e/put    37 {:b 8}) {:b 8}     ) "Permissible to \"put\" maps.")
-    (is (= (e/list            ) {37 {:b 8}, 42 {:a 7}}) "Maps equivalent to vector pairs.")
+    (is (= (e/list            ) {37 {:b 8}, 42 {:a 7}}
+                                           ) "Maps equivalent to vector pairs.")
     (is (= (e/delete 42       ) {:a 7}     ) "Delete produces the value deleted.") 
     (is (= (e/get    42       ) nil        ) "Key should be missing after delete.")
     (is (= (e/put    42 {}    ) {}         ) "Permissible to \"put\" an empty map.")
@@ -30,6 +32,9 @@
     (is (= (e/clear           ) {}         ) "Clear produces empty map.")
     (is (= (e/delete 42       ) nil        ) "Deleting from empty map is harmless.")     
     (is (= (e/list            ) {}         ) "Empty map should show as empty.")
+
+    (is (= (let [v {:a {:ab 12, :ac 13}, :c 3}]
+           (e/put "foo" v     ) v         )) "String keys and nested values.")
     ))
 
 (deftest test-elem-abnormal-operations
