@@ -127,3 +127,8 @@ ls -la
 (e/list)
 (e/put 37 [:a 7])
 (e/list)
+(keys {:a 1})
+(type (keys {:a 1}))
+(keys [:a 1])
+(def o (atom {:a 1}))
+(keys @o)

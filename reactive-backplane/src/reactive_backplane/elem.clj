@@ -1,11 +1,20 @@
 (ns reactive-backplane.elem
   (:refer-clojure :exclude (list get delete)))
 
+;;; ================================================================
 ;;; Puttable, two-level map
 ;;; http://stackoverflow.com/questions/630453/put-vs-post-in-rest
+(def observables
+  "Public repository for observables keyed by URIs."
+  (atom {}))
 
+(defn list-observables
+  "Produce a list of all extant observables in the reactive backplane."
+  []
+  (keys @observables))
 
-;;; Singleton atom-map
+;;; ================================================================
+;;; Singleton atom-map for bootstrapping the service.
 (def elems
   "Public singleton atom containing the time-varying state of the
 web-service in the form of all key-value pairs that have been PUT."
