@@ -17,22 +17,51 @@
                                 (* (second %) (beef-factor frqs)))
                               frqs))
 
-(defn fill-shortest [frqs]
-  (let [sorted (sort-by second frqs)
-        tallest (last sorted)
-        shortest (first sorted)
-        deficit (- (second tallest) (second shortest))]
-    {}))
+(defn fill-shortest [target [filled frqs]]
+  (let [sorted   (sort-by second frqs)
+        tallest  (last    sorted)
+        shortest (first   sorted)
+        deficit  (- target (second shortest))
+        to-do    (drop 1 sorted)]
+    {:filled
+     (conj filled {:home shortest, :other [(first tallest) deficit]})
+     :remaining
+     (if (empty? to-do)
+       to-do
+       (conj (drop-last to-do)
+             [(first tallest) (- (second tallest) deficit)]))}))
 
-(defn -main [] (
-                pprint
-                {"count" (N loaded-die)
+(defn redistribute [target frqs] ; TODO: precondition frqs not empty?
+  (loop [result (fill-shortest target [[] frqs])]
+    (if (empty? (:remaining result))
+      (:filled result)
+      (recur (fill-shortest target
+                            [(:filled result) (:remaining result)])))))
+
+(defn sample-1 [target redistributed]
+  (let [bucket (rand-nth redistributed)
+        height (rand-int target)]
+    (if (< height (second (:home bucket)))
+      (first (:home bucket))
+      (first (:other bucket))
+      )))
+
+(defn sample [n redistributed]
+  (let [ansatz (first redistributed)
+        target (+ (second (:home ansatz)) (second (:other ansatz)))]
+    (map (fn [_] (sample-1 target redistributed))
+         (range n))))
+
+(defn -main [] (pprint
+                ["loaded-die" loaded-die
+                 ,"count" (N loaded-die)
                  ,"total" (S loaded-die)
                  ,"gcd count total" (mathEx/gcd (N loaded-die) (S loaded-die))
                  ,"beefed-up total" (L loaded-die)
                  ,"target height:" (H loaded-die)
                  ,"beefed-up heights" (beefed loaded-die)
                  ,"total beefed-up heights" (total (beefed loaded-die))
-                 ,"tallest and shortest" (fill-shortest (beefed loaded-die))
-                 }))
+                 ,"tallest and shortest" (fill-shortest (H loaded-die) [[] (beefed loaded-die)])
+                 ,"redistributed" (redistribute (H loaded-die) (beefed loaded-die))
+                 ]))
 
