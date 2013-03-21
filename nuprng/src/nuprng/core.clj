@@ -3,7 +3,7 @@
   (:require [clojure.math.numeric-tower :as mathEx]))
 
 ;;; This is the form of data returned by "frequencies,"
-(def loaded-die {:1 37, :2 0, :3 17, :4 5, :5 12, :6 11})
+(def loaded-die {:A 37, :B 0, :C 17, :D 5, :E 12, :F 11})
 
 (defn total [frqs] (apply + (map second frqs)))
 
@@ -53,7 +53,7 @@
          (range n))))
 
 (defn -main [] (pprint
-                ["loaded-die" loaded-die
+                {"loaded-die" loaded-die
                  ,"count" (N loaded-die)
                  ,"total" (S loaded-die)
                  ,"gcd count total" (mathEx/gcd (N loaded-die) (S loaded-die))
@@ -63,5 +63,6 @@
                  ,"total beefed-up heights" (total (beefed loaded-die))
                  ,"tallest and shortest" (fill-shortest (H loaded-die) [[] (beefed loaded-die)])
                  ,"redistributed" (redistribute (H loaded-die) (beefed loaded-die))
-                 ]))
+                 ,"sample 10000" (time (frequencies (sample (* 10000 (S loaded-die)) (redistribute (H loaded-die) (beefed loaded-die)))))
+                 }))
 
