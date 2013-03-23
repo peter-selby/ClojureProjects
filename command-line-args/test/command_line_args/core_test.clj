@@ -3,8 +3,8 @@
         command-line-args.core))
 
 (deftest pair-of-values
-  (let [args ["--server" "localhost"
-              "--port" "8080"
+  (let [args ["--server"      "localhost"
+              "--port"        "8080"
               "--environment" "production"]]
     (is (= {:server "localhost"
             :port "8080"
@@ -35,12 +35,14 @@
 ;; y, M-x nrepl-jack-in -- but this is really draconian. I do not know
 ;; if this is a bug with nrepl or with my tests. If I can prove it's a
 ;; bug in my tests, then "fixtures" might be a good way to fix it.
-;; TODO.
+;; TODO. -- More evidence: the nrepl testing infrastructure tends to
+;; go haywire frequently. I haven't decided whether to try upgrading
+;; it or just to forget it since leiningen works well.
 
 (deftest d-test
   (testing "dynamic binding and let shadowing"
     (do (f4)
-        (is (= v                       4)))))
+        (is (= v 4)))))
 
 (deftest e-001-test
   (testing "count on vectors"
@@ -48,7 +50,7 @@
 
 (deftest e-002-test
   (testing "reverse a vector"
-    (is (= (reverse [2 4 7])       [7 4 2]))))
+    (is (= (reverse [2 4 7]) [7 4 2]))))
 
 (deftest e-003-test
   (testing "map over multiple collections of differing lengths"
@@ -114,9 +116,63 @@
        plays))
 
 (deftest purity-test-001
-  (testing "Testing purity of the book's \"halve!\" function if
-  \"plays\" is immutable.")
-  (is (= (map :plays plays) '(979 2333, 979, 2665))
-      (= (map :plays (halve! [:plays])) '(489 1166 489 1332))
-      (= (map :plays plays) '(979 2333, 979, 2665))
-      ))
+  (testing "Testing purity of the book's \"halve!\" function if  \"plays\" is immutable."
+    (is (= (map :plays plays) '(979 2333, 979, 2665)))
+    (is (= (map :plays (halve! [:plays])) '(489 1166 489 1332)))
+    (is (= (map :plays plays) '(979 2333, 979, 2665))))
+  )
+
+(defn slope-optional
+  [& {:keys [p1 p2] :or {p1 [0 0] p2 [1 1]} }]
+  (let [dy (- (p2 1) (p1 1))
+        dx (- (p2 0) (p1 0))]
+    (float (/ dy dx))))
+
+(deftest optional-and-named-arguments-test-001
+  (testing "Optional and named arguments."
+    (is (= -6.0 (slope-optional :p1 [4 15] :p2 [3 21])))
+    (is (= 0.5 (slope-optional :p2 [2 1])))
+    (is (= 1.0 (slope-optional)))
+    ))
+
+(defn slope
+  "Documentation."
+  [& {:keys [p1 p2] :or {p1 [0 0] p2 [1 1]} }]
+  {:pre [(vector? p1)
+         (vector? p2)
+         (= 2 (count p1))
+         (= 2 (count p2))
+         (not= (p1 1) (p2 1))],
+   :post (float? %)}
+  (let [dy (- (p2 1) (p1 1))
+        dx (- (p2 0) (p1 0))]
+    (float (/ dy dx)))  
+  )
+
+(deftest vectors-are-functions-of-their-indices-001
+  (testing "Vectors are functions of their indices."
+    (-> 1.0 (= ([1.0] 0)) is)
+    (is (thrown? java.lang.IndexOutOfBoundsException ([1.0] 1)))
+    (is (thrown? java.lang.IndexOutOfBoundsException ([] 0)))
+    (is (thrown? java.lang.IndexOutOfBoundsException ([] -1)))
+    (is (thrown? java.lang.IndexOutOfBoundsException ([1.0] -1)))
+    ))
+
+(deftest maps-are-functions-of-their-keys-001
+  (testing "Maps are functions of their keys."
+    (->   1 (= ({:a 1}       :a)) is)
+    (->   2 (= ({:a 1, :b 2} :b)) is)
+    (-> nil (= ({:a 1, :b 2} :c)) is)
+    (-> 'df (= ({} :a 'df      )) is)
+    ))
+
+(deftest keys-are-functions-that-look-up-values-in-maps-001
+  (testing "Keys are functions that look up values in maps."
+    (->   1 (= (:a {:a 1}))           is)
+    (->   1 (= (:a {:a 1, :b 2}    )) is)
+    (-> nil (= (:c {:a 1, :b 2}    )) is)
+    (-> nil (= (:c {}              )) is)
+    (-> 'df (= (:c {:a 1, :b 2} 'df)) is)
+    (-> 'df (= (:c {}           'df)) is)
+    ))
+
