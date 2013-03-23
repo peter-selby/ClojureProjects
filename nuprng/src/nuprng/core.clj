@@ -63,6 +63,11 @@
                  ,"total beefed-up heights" (total (beefed loaded-die))
                  ,"tallest and shortest" (fill-shortest (H loaded-die) [[] (beefed loaded-die)])
                  ,"redistributed" (redistribute (H loaded-die) (beefed loaded-die))
-                 ,"sample 10000" (time (frequencies (sample (* 10000 (S loaded-die)) (redistribute (H loaded-die) (beefed loaded-die)))))
+                 ,"sample 10000"
+                 (time
+                  (frequencies
+                   (sample (* 10000 (S loaded-die))
+                           (redistribute (H loaded-die)
+                                         (beefed loaded-die)))))
                  }))
 
