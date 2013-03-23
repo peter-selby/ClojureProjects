@@ -107,17 +107,16 @@
    is returned with the results of the function applied to each keyed entry."
   (conj m (keys-apply f ks m)))
 
-;;; There appears to be an error in the book, on page 132. The book
-;;; implies that "halve!" modifies the data "plays" in-place, but I
-;;; cannot reproduce that behavior. It appears to me that "halve!" is
-;;; indeed a pure function, and I will test it as such, leaving it
-;;; mis-named with the trailing bang "!" character, so as not to
-;;; interfere with the names in the book.
+;;; It appears to me that "halve!" is indeed a pure function if it
+;;; only closes over immutable values, and I will test it as such.
 (defn halve! [ks]
   (map (partial manip-map #(int (/ % 2)) ks)
        plays))
 
 (deftest purity-test-001
-  (testing "Testing purity of the book's \"halve!\" function, most likely mis-named with a trailing bang character, on page 132.")
+  (testing "Testing purity of the book's \"halve!\" function if
+  \"plays\" is immutable.")
   (is (= (map :plays plays) '(979 2333, 979, 2665))
-      (= (map :plays (halve! [:plays])) '(489 1166 489 1332))))
+      (= (map :plays (halve! [:plays])) '(489 1166 489 1332))
+      (= (map :plays plays) '(979 2333, 979, 2665))
+      ))
