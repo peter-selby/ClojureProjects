@@ -81,6 +81,7 @@
        plays))
 
 (defn slope-optional
+  ^:harangue
   [& {:keys [p1 p2] :or {p1 [0 0] p2 [1 1]} }]
   (let [dy (- (p2 1) (p1 1))
         dx (- (p2 0) (p1 0))]

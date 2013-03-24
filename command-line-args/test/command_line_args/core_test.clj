@@ -151,4 +151,35 @@
            (with-open [rdr (reader "./test/command_line_args/data/foo.txt")]
              (vec (line-seq rdr))))
         )))
+;;; via
+;;; http://www.learningclojure.com/2009/09/nested-def-me-name-firstname-john.html
 
+(def he
+  {:name
+   {:firstname "John"
+    :middlename "Lawrence"
+    :surname "Aspden"}
+   :address 
+   {:street "Catherine Street"
+    :town {:name "Cambridge"
+           :county "Cambridgeshire"
+           :country{
+                    :name "England"
+                    :history "Faded Imperial Power"
+                    :role-in-world "Beating Australia at Cricket"}}}})
+
+(deftest nested-access-test-001
+  (is (= (:name he) (get he :name)))
+  (is (= (get-in he [:name :middlename]) (-> he :name :middlename)))
+  (is (= (get-in he [:name :middlename]) (reduce get he [:name :middlename])))
+  (is (= (let [ks [:address :street]]
+           (get-in
+            (update-in he ks #(str "33 " %))
+            ks)
+           ) "33 Catherine Street"))
+  (is (= (let [ks [:name :initials]]
+           (get-in
+            (assoc-in he ks "JLA")
+            ks))
+         "JLA"))
+  )
