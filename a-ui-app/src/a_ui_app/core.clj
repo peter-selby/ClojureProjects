@@ -2,26 +2,12 @@
 ;;; http://stackoverflow.com/questions/2792451/improving-my-first-clojure-program?rq=1
 
 (ns a-ui-app.core
+  (import [java.awt    Color  Dimension  event.KeyListener])
+  (import [javax.swing JFrame JPanel                      ])
   (:gen-class))
-
-(import [java.awt    Color  Dimension  event.KeyListener])
-(import [javax.swing JFrame JPanel                      ])
 
 (def x (ref 0))
 (def y (ref 0))
-
-#_(def panel
-  (proxy [JPanel KeyListener] []
-    (getPreferredSize [] (Dimension. 100 100))
-    (keyPressed [e]
-      (let [keyCode (.getKeyCode e)]
-        (if (== 37 keyCode) (dosync (alter x dec))
-        (if (== 38 keyCode) (dosync (alter y dec))
-        (if (== 39 keyCode) (dosync (alter x inc))
-        (if (== 40 keyCode) (dosync (alter y inc))
-                            (println keyCode)))))))
-    (keyReleased [e])
-    (keyTyped [e])))
 
 (def panel
   (proxy [JPanel KeyListener] []
@@ -42,19 +28,20 @@
 
 (def frame (JFrame. "Test"))
 
-(defn drawRectangle [p]
+(defn draw-rectangle [p x y]
   (doto (.getGraphics p)  
     (.setColor (java.awt.Color/WHITE))
     (.fillRect 0 0 100 100)
     (.setColor (java.awt.Color/BLUE))
-    (.fillRect (* 10 (deref x)) (* 10 (deref y)) 10 10)))
+    (.fillRect (* 10 x) (* 10 y) 10 10)))
 
 (defn -main
-  "I don't do a whole lot ... yet."
+  "See http://stackoverflow.com/questions/2792451/improving-my-first-clojure-program?rq=1."
   [& args]
   ;; work around dangerous default behaviour in Clojure
   (alter-var-root #'*read-eval* (constantly false))
   (println "Hello, World!")
+
   (doto panel
     (.setFocusable true)
     (.addKeyListener panel))
@@ -66,7 +53,7 @@
     (.setVisible true))
 
   (loop []
-    (drawRectangle panel)
+    (draw-rectangle panel @x @y)
     (Thread/sleep 10)
     (recur))
   )
