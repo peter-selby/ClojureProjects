@@ -2,8 +2,8 @@
 ;;; http://stackoverflow.com/questions/2792451/improving-my-first-clojure-program?rq=1
 
 (ns a-ui-app.core
-  (import [java.awt    Color  Dimension  event.KeyListener])
-  (import [javax.swing JFrame JPanel                      ])
+  (:import [java.awt    Color  Dimension  event.KeyListener])
+  (:import [javax.swing JFrame JPanel                      ])
   (:gen-class))
 
 (def x (ref 0))
@@ -40,7 +40,6 @@
   [& args]
   ;; work around dangerous default behaviour in Clojure
   (alter-var-root #'*read-eval* (constantly false))
-  (println "Hello, World!")
 
   (doto panel
     (.setFocusable true)
