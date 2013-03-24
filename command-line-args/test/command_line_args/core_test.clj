@@ -1,5 +1,6 @@
 (ns command-line-args.core-test
   (:use clojure.test
+        clojure.pprint
         clojure.java.io
         command-line-args.core))
 
