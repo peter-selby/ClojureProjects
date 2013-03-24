@@ -1,4 +1,5 @@
 (ns command-line-args.core-test
+  (:require clojure.algo.monads)
   (:use clojure.test
         clojure.pprint
         clojure.java.io
@@ -190,4 +191,25 @@
   (testing "The writer monad (via onclojure.com)."
     (is (= (fib-trace 5)
            [5 [[1 1] [0 0] [2 1] [1 1] [3 2] [1 1] [0 0] [2 1] [4 3] [1 1] [0 0] [2 1] [1 1] [3 2]]]))
+    ))
+
+(deftest identity-monad-test
+  (testing "The identity monad (via onclojure.com)."
+    (is (= (fib-ident 5) 5))))
+
+(deftest maybe-monad-test
+  (testing "The maybe monad."
+    (is (= nil (fib-maybe -100)))))
+
+(deftest monad-transformer-test
+  (testing "Monad transformers with maybe and sequence (via onclojure.com)."
+    (let [msq (clojure.algo.monads/maybe-t clojure.algo.monads/sequence-m)]
+      (is (= (vec (clojure.algo.monads/domonad
+                   msq
+                   [x [1 2 nil 4]
+                    y [10 nil 30 40]]
+                   (+ x y)
+                   ))
+             [11 nil 31 41, 12 nil 32 42, nil, 14 nil 34 44]
+             )))
     ))

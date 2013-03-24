@@ -126,3 +126,37 @@
         ]
        (+ f1 f2))))
   )
+
+(with-monad identity-m
+  (defn fib-ident [n]
+    (if (< n 2)
+      (m-result n)
+      (domonad
+       [n1 (m-result (dec n))
+        n2 (m-result (dec n1))
+        f1 (fib-ident n1)
+        ;;         _  (write [n1 f1])
+        f2 (fib-ident n2)
+        ;;         _  (write [n2 f2])
+        ]
+       (+ f1 f2))))
+  )
+
+(with-monad maybe-m
+  (defn fib-maybe [n]
+    (if (< n 0)
+      (m-result nil)
+      (if (< n 2)
+        (m-result n)
+        (domonad
+         [n1 (m-result (dec n))
+          n2 (m-result (dec n1))
+          f1 (fib-maybe n1)
+          f2 (fib-maybe n2)
+          ]
+         (+ f1 f2)))))
+)
+
+;;; The lift abstraction is obvious.
+
+(def maybe-in-sequence-m (maybe-t sequence-m))
