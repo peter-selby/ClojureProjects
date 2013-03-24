@@ -138,10 +138,17 @@
     (-> 'df (= (:c {}           'df)) is)
     ))
 
+(deftest sets-are-functions-that-test-membership
+  (testing "Sets are functions that test membership."
+    (is (= \a ((set "aeiou") \a)))
+    (is (= nil ((set "aeiou")\b)))
+))
+
 (deftest clojure-java-io-test-001
   (clojure.pprint/pprint (. (java.io.File. ".") getCanonicalPath))
   (testing "Clojure java io."
     (is (= ["\"a\"", "'b", ":c", "\\d"]
            (with-open [rdr (reader "./test/command_line_args/data/foo.txt")]
              (reduce conj [] (line-seq rdr))))
-    )))
+        )))
+
