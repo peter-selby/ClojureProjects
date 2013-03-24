@@ -13,4 +13,5 @@
   :dependencies [[org.clojure/clojure         "1.5.0"]
                  [clj-http                    "0.6.4"]
                  [org.clojure/tools.namespace "0.2.2"]
+                 [org.clojure/algo.monads     "0.1.4"]
                  ])

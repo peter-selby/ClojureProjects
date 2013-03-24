@@ -170,17 +170,24 @@
                     :role-in-world "Beating Australia at Cricket"}}}})
 
 (deftest nested-access-test-001
-  (is (= (:name he) (get he :name)))
-  (is (= (get-in he [:name :middlename]) (-> he :name :middlename)))
-  (is (= (get-in he [:name :middlename]) (reduce get he [:name :middlename])))
-  (is (= (let [ks [:address :street]]
-           (get-in
-            (update-in he ks #(str "33 " %))
-            ks)
-           ) "33 Catherine Street"))
-  (is (= (let [ks [:name :initials]]
-           (get-in
-            (assoc-in he ks "JLA")
-            ks))
-         "JLA"))
-  )
+  (testing "Various nested access methods (via John Aspden)."
+    (is (= (:name he) (get he :name)))
+    (is (= (get-in he [:name :middlename]) (-> he :name :middlename)))
+    (is (= (get-in he [:name :middlename]) (reduce get he [:name :middlename])))
+    (is (= (let [ks [:address :street]]
+             (get-in
+              (update-in he ks #(str "33 " %))
+              ks)
+             ) "33 Catherine Street"))
+    (is (= (let [ks [:name :initials]]
+             (get-in
+              (assoc-in he ks "JLA")
+              ks))
+           "JLA"))
+    ))
+
+(deftest writer-monad-test
+  (testing "The writer monad (via onclojure.com)."
+    (is (= (fib-trace 5)
+           [5 [[1 1] [0 0] [2 1] [1 1] [3 2] [1 1] [0 0] [2 1] [4 3] [1 1] [0 0] [2 1] [1 1] [3 2]]]))
+    ))

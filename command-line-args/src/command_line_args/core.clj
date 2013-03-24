@@ -1,4 +1,5 @@
-(ns command-line-args.core)
+(ns command-line-args.core
+  (:use clojure.algo.monads))
 
 (defn -main
   "I am the canonical ideal."
@@ -102,3 +103,26 @@
     (float (/ dy dx)))  
   )
 
+(defn fib [n]
+  (if (< n 2)
+    n
+    (let [n1 (dec n)
+          n2 (dec n1)
+          f1 (fib n1)
+          f2 (fib n2)]
+      (+ f1 f2))))
+
+(with-monad (writer-m [])
+  (defn fib-trace [n]
+    (if (< n 2)
+      (m-result n)
+      (domonad
+       [n1 (m-result (dec n))
+        n2 (m-result (dec n1))
+        f1 (fib-trace n1)
+        _  (write [n1 f1])
+        f2 (fib-trace n2)
+        _  (write [n2 f2])
+        ]
+       (+ f1 f2))))
+  )
