@@ -55,6 +55,21 @@
   (clojure.pprint/pprint
    (map #(list (ns-name %) (map first (ns-publics %))) (all-ns))))
 
+;;; Def-let, for debugging lets. try
+;; (def-let [r (range 10)
+;;       make-map   (fn [f] (zipmap r (map f r)))
+;;       fns        (map make-map (list  #(* % % %) #(* 5 % %) #(* 10 %)))
+;;       merge-fns  (fn[f] (apply merge-with f fns))]
+;;   (map merge-fns (list min max))) 
+
+(defmacro def-let
+  "like let, but binds the expressions globally."
+  [bindings & more]
+  (let [let-expr (macroexpand `(let ~bindings))
+        names-values (partition 2 (second let-expr))
+        defs   (map #(cons 'def %) names-values)]
+    (concat (list 'do) defs more)))
+
 ;;; debugging macro   try: (* 2 (dbg (* 3 4)))
 
 (defmacro dbg [x]
