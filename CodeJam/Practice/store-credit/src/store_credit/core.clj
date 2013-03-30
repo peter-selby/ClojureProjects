@@ -4,15 +4,7 @@
   (:use [clojure.pprint  :as pp   :only [pprint]])
   (:gen-class))
 
-;;; This is speed-code: very very light on error-checking and testing.
-
-(defn get-current-directory []
-  (. (java.io.File. ".") getCanonicalPath))
-
-(defn do-per-line [f]
-  (with-open [rdr (cjio/reader "input.txt")]
-    (doseq [line (line-seq rdr)]
-      (f line))))
+;;; This is speed-code: no attention to error-checking or testing.
 
 (defn case-from-lines [triple]
   {:credit (read-string (first triple))
@@ -20,13 +12,24 @@
    :prices (map read-string (cstr/split (nth triple 2) #"\s"))}
   )
 
+(defn soln-from-case [cs]
+  (let [c    (:credit cs)
+        ps   (:prices cs)
+        zs   (map-indexed (fn [i price] {price (inc i)}) (:prices cs))
+        _    (pp/pprint zs)
+        qs   (apply merge zs)
+        _    (pp/pprint qs)
+        fs   (filter identity (map #(qs (- c %)) ps))
+        _    (pp/pprint fs)
+        ]
+    
+    fs))
+
 (defn -main
   "Solve codeJam practice problem https://code.google.com/codejam/contest/351101/dashboard#s=p0."
   [& args]
   ;; work around dangerous default behaviour in Clojure
   (alter-var-root #'*read-eval* (constantly false))
-
-  (println (get-current-directory))
 
   (let [input (slurp "input.txt")
         lines (cstr/split-lines input)
@@ -35,23 +38,15 @@
         cases (reduce
                (fn [cases triple] (conj cases (case-from-lines triple)))
                []
-               (partition 3 flat-cases))]
-
-    (pp/pprint cases)
-
-    cases
-
-    #_(map
-     (fn [line] (println line))
-     cases)
-
+               (partition 3 flat-cases))
+        solns (map soln-from-case cases)
+        ready (map-indexed
+               (fn [i soln]
+                 (str "Case #" (inc i) ": " (first soln) " " (nth soln 1) "\n"))
+               solns)]
+    (with-open [w (cjio/writer "output.txt")]
+      (doseq [line ready] (.write w line)))
     )
-
-  #_(do-per-line println)
-
-  #_(with-open [wrtr (cjio/writer "output.txt")]
-    (do-per-line (fn [l] (.write wrtr l))))
-
-  #_(slurp "output.txt")
+  'done
   )
 
