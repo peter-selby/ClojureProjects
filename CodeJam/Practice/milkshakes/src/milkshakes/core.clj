@@ -29,15 +29,29 @@
          (println "----------------")
          x#)))
 
-(defn parse-cases [n ls]
+(defn case-lines [pre-ls]
+  (let [ls pre-ls
+        c (read-string (first ls))
+        prefs (reduce
+               []
+               (fn [prefs line] (conj prefs (map read-string (cstr/split line #"\s"))))
+               (take c (drop 1 ls)))
+        ]
+    ))
 
+(defn nest-case-lines [pre-ls]
+  (case-lines pre-ls)
+  )
+
+(defn parse-case [ls]
+  ls
   )
 
 (defn parse-lines [ls]
   (let [ncases (read-string (first ls))
-        acases (parse-cases ncases (rest ls))]
-    acases
-  ))
+        acases (rest ls)]
+    (dbg ncases)
+    (map parse-case acases)))
 
 (defn -main
   "Basic husk for programming problems."
@@ -45,12 +59,7 @@
   ;; work around dangerous default behaviour in Clojure
   (alter-var-root #'*read-eval* (constantly false))
   (println (get-current-directory))
-  ;; (let [input (slurp "input.txt")]
-  ;;   (println input))
-  ;; (do-per-line println)
-  ;; (with-open [wrtr (cjio/writer "output.txt")]
-  ;;   (do-per-line (fn [l] (.write wrtr l))))
-  ;; (slurp "output.txt")
+
   (let [input (slurp
                ;"/Users/rebcabin/Downloads/C-large-practice.in"
                "input.txt"
@@ -63,7 +72,7 @@
                       (identity l)
                       "\n")
                  )
-               (rest lines)
+               (parse-lines lines)
                )
         ]
     (with-open [w (cjio/writer "output.txt")]
