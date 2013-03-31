@@ -29,29 +29,26 @@
          (println "----------------")
          x#)))
 
-(defn case-lines [pre-ls]
-  (let [ls pre-ls
-        c (read-string (first ls))
-        prefs (reduce
-               []
-               (fn [prefs line] (conj prefs (map read-string (cstr/split line #"\s"))))
-               (take c (drop 1 ls)))
-        ]
-    ))
-
-(defn nest-case-lines [pre-ls]
-  (case-lines pre-ls)
-  )
-
-(defn parse-case [ls]
-  ls
+(defn parse-cases [pre-ls]
+  (loop [ls pre-ls
+         flavors (read-string (first ls))
+         c (read-string (fnext ls))
+         raw-prefs (take c (drop 2 ls))
+         ]
+    (dbg flavors)
+    (dbg c)
+    (dbg raw-prefs)
+    ls)
   )
 
 (defn parse-lines [ls]
   (let [ncases (read-string (first ls))
-        acases (rest ls)]
+        acases []
+        temp []
+        rls (rest ls)]
     (dbg ncases)
-    (map parse-case acases)))
+    (parse-cases rls)
+    ))
 
 (defn -main
   "Basic husk for programming problems."
