@@ -30,24 +30,15 @@
          x#)))
 
 (defn parse-cases [acc ls]
-  (let [flavors (read-string (first ls))
-        c (read-string (fnext ls))
-        raw-prefs (take c (drop 2 ls))
-        nested-prefs (map #(cstr/split % #"\s") raw-prefs)
+  (let [flavors          (read-string (first ls))
+        c                (read-string (fnext ls))
+        raw-prefs        (take c (drop 2 ls))
+        nested-prefs     (map #(cstr/split % #"\s") raw-prefs)
         nested-int-prefs (map #(map read-string %) nested-prefs)
-        prefs (map #(partition 2 (drop 1 %)) nested-int-prefs)
-        rems (drop (+ 2 c) ls)
+        prefs            (map #(partition 2 (drop 1 %)) nested-int-prefs)
+        rems             (drop (+ 2 c) ls)
         ]
-    ;; (dbg flavors)
-    ;; (dbg c)
-    ;; (dbg raw-prefs)
-    ;; (dbg (count raw-prefs))
-    ;; (dbg (map type raw-prefs))
-    ;; (dbg nested-prefs)
-    ;; (dbg nested-int-prefs)
-    ;; (dbg prefs)
-    ;; (dbg rems)
-    (let [ans (conj acc (vec prefs))]
+    (let [ans (conj acc {:flavors flavors :customers (vec prefs)})]
       (if (not= '() rems)
         (recur ans rems)
         ans))))
@@ -80,7 +71,9 @@
                       (identity l)
                       "\n")
                  )
-               (parse-lines lines)
+               (let [parsed 
+                     (parse-lines lines)]
+                 parsed)
                )
         ]
     (with-open [w (cjio/writer "output.txt")]
