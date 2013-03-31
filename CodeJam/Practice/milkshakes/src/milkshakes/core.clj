@@ -29,7 +29,7 @@
          (println "----------------")
          x#)))
 
-(defn parse-cases [ls]
+(defn parse-cases [acc ls]
   (let [flavors (read-string (first ls))
         c (read-string (fnext ls))
         raw-prefs (take c (drop 2 ls))
@@ -38,18 +38,19 @@
         prefs (map #(partition 2 (drop 1 %)) nested-int-prefs)
         rems (drop (+ 2 c) ls)
         ]
-    (dbg flavors)
-    (dbg c)
-    (dbg raw-prefs)
-    (dbg (count raw-prefs))
-    (dbg (map type raw-prefs))
-    (dbg nested-prefs)
-    (dbg nested-int-prefs)
-    (dbg prefs)
-    (dbg rems)
-    (if (not= '() rems)
-      (recur rems)
-      rems)))
+    ;; (dbg flavors)
+    ;; (dbg c)
+    ;; (dbg raw-prefs)
+    ;; (dbg (count raw-prefs))
+    ;; (dbg (map type raw-prefs))
+    ;; (dbg nested-prefs)
+    ;; (dbg nested-int-prefs)
+    ;; (dbg prefs)
+    ;; (dbg rems)
+    (let [ans (conj acc (vec prefs))]
+      (if (not= '() rems)
+        (recur ans rems)
+        ans))))
 
 (defn parse-lines [ls]
   (let [ncases (read-string (first ls))
@@ -57,7 +58,7 @@
         temp []
         rls (rest ls)]
     (dbg ncases)
-    (parse-cases rls)
+    (parse-cases [] rls)
     ))
 
 (defn -main
