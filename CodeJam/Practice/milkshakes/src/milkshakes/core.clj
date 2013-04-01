@@ -62,22 +62,51 @@
         ;; using malted only when unmalted is zero.
         m-acceptable  (int-array N 1)
         u-acceptable  (int-array N 1)
+        ;; Index of malt-acceptable is 0, of unmalt-acceptable 1.
+        acceptables   [m-acceptable u-acceptable]
         likes  (:all-likes a)
-        ;; In the likes, each like is a list of a flavor index and a
-        ;; malted-or-not.  
+        ;; Each like is a list of a flavor index and a malted-or-not.
+        ;; Make the leaves into vectors.
         mikes  (map #(map vec %) likes)
         ;; The singleton likes are important, since they imply that
         ;; the other alternative is unacceptable.
-        temp0  (doseq [mike mikes] (dbg (count mike)))
+        temp0  (try (doseq [mike mikes]
+                      (if (= (count mike) 1)
+                        (let [[flav malt?] (first mike)
+                              other (- 1 malt?)
+                              flav-idx (dec flav)
+                              ]
+                          (if (= 0 (aget (acceptables malt?) flav-idx))
+                              (throw (Exception. "IMPOSSIBLE")))
+                          (aset-int (acceptables other) flav-idx 0)
+                          )
+                        ))
+                    (catch Exception e (.getMessage e))
+                    )
+        ;; The doubletons are important since, if one of their likes
+        ;; is unacceptable, their other like is forced, which means
+        ;; that the malt-opposite of their other like is unaccetable.
+        temp1 (try (doseq [mike mikes]
+                     (if (= (count mike) 2)
+                       (let [[f1 m1?] (first mike)
+                             o1       (- 1 m1?)
+                             f1i      (dec f1)
+                             [f2 m2?] (second mike)
+                             o2       (- 1 m2?)
+                             f2i      (dec f2)
+                             
+                             ])
+                       )
+                     )
+                    (catch Exception e (.getMessage e))
+                   )
         nikes  (map #(map (fn [[flav malt]]
-                            
                             {:flav flav, :malt malt})
                           %)
                     mikes)
         ]
-    (dbg temp0)
-    (ppdbg {:m (vec m-acceptable)
-            :u (vec u-acceptable)})
+    (ppdbg (or temp0 {:m (vec m-acceptable)
+                      :u (vec u-acceptable)}))
     ))
 
 (defn -main
