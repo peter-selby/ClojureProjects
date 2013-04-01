@@ -38,7 +38,7 @@
         likes            (map #(partition 2 (drop 1 %)) nested-int-likes)
         rems             (drop (+ 2 c) ls)
         ]
-    (let [ans (conj acc {:flavors flavors :likes (vec likes)})]
+    (let [ans (conj acc {:flavors flavors :all-likes (vec likes)})]
       (if (not= '() rems)
         (recur ans rems)
         ans))))
@@ -51,24 +51,33 @@
 
 (defn case->soln [a]
   (let [N      (:flavors a)
-        ;; In the batches, 1 means malted and 0 means unmalted.
-        bs     (byte-array N)
-        ;; A batch is impossible if the only way to satisfy customers
-        ;; is to have some flavor both malted and unmalted. As we're
-        ;; processing likes
-        imposs (byte-array N)
-        likes  (:likes a)
+        ;; In the batches, 1 means malted and 0 means unmalted. Keep
+        ;; two arrays, one denoting whether malted is acceptable, the
+        ;; other denoting whether unmalted is acceptable. Examine
+        ;; customers one at a time. If a customer declares exclusive
+        ;; like for unmalted or malted, mark the corresponding slot in
+        ;; the other array with a zero. If we ever find that both
+        ;; boxes for any flavor are zero, we're done and throw
+        ;; "IMPOSSIBLE." Otherwise, at the end, accumulate batches
+        ;; using malted only when unmalted is zero.
+        m-acceptable  (int-array N 1)
+        u-acceptable  (int-array N 1)
+        likes  (:all-likes a)
         ;; In the likes, each like is a list of a flavor index and a
         ;; malted-or-not.  
         mikes  (map #(map vec %) likes)
+        ;; The singleton likes are important, since they imply that
+        ;; the other alternative is unacceptable.
+        temp0  (doseq [mike mikes] (dbg (count mike)))
         nikes  (map #(map (fn [[flav malt]]
+                            
                             {:flav flav, :malt malt})
                           %)
                     mikes)
         ]
-    (aset-byte bs 0 1)
-    (dbg nikes)
-    (vec bs)
+    (dbg temp0)
+    (ppdbg {:m (vec m-acceptable)
+            :u (vec u-acceptable)})
     ))
 
 (defn -main
