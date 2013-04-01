@@ -32,24 +32,43 @@
 (defn parse-cases [acc ls]
   (let [flavors          (read-string (first ls))
         c                (read-string (fnext ls))
-        raw-prefs        (take c (drop 2 ls))
-        nested-prefs     (map #(cstr/split % #"\s") raw-prefs)
-        nested-int-prefs (map #(map read-string %) nested-prefs)
-        prefs            (map #(partition 2 (drop 1 %)) nested-int-prefs)
+        raw-likes        (take c (drop 2 ls))
+        nested-likes     (map #(cstr/split % #"\s")     raw-likes)
+        nested-int-likes (map #(map read-string %)      nested-likes)
+        likes            (map #(partition 2 (drop 1 %)) nested-int-likes)
         rems             (drop (+ 2 c) ls)
         ]
-    (let [ans (conj acc {:flavors flavors :customers (vec prefs)})]
+    (let [ans (conj acc {:flavors flavors :likes (vec likes)})]
       (if (not= '() rems)
         (recur ans rems)
         ans))))
 
 (defn parse-lines [ls]
-  (let [ncases (read-string (first ls))
-        acases []
-        temp []
-        rls (rest ls)]
+  (let [ncases (read-string (first ls))]
     (dbg ncases)
-    (parse-cases [] rls)
+    (parse-cases [] (rest ls))
+    ))
+
+(defn case->soln [a]
+  (let [N      (:flavors a)
+        ;; In the batches, 1 means malted and 0 means unmalted.
+        bs     (byte-array N)
+        ;; A batch is impossible if the only way to satisfy customers
+        ;; is to have some flavor both malted and unmalted. As we're
+        ;; processing likes
+        imposs (byte-array N)
+        likes  (:likes a)
+        ;; In the likes, each like is a list of a flavor index and a
+        ;; malted-or-not.  
+        mikes  (map #(map vec %) likes)
+        nikes  (map #(map (fn [[flav malt]]
+                            {:flav flav, :malt malt})
+                          %)
+                    mikes)
+        ]
+    (aset-byte bs 0 1)
+    (dbg nikes)
+    (vec bs)
     ))
 
 (defn -main
@@ -73,7 +92,7 @@
                  )
                (let [parsed 
                      (parse-lines lines)]
-                 parsed)
+                 (map case->soln parsed))
                )
         ]
     (with-open [w (cjio/writer "output.txt")]
