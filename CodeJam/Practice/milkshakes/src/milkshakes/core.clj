@@ -38,7 +38,7 @@
         likes            (map #(partition 2 (drop 1 %)) nested-int-likes)
         rems             (drop (+ 2 c) ls)
         ]
-    (let [ans (conj acc {:flavors flavors :all-likes (vec likes)})]
+    (let [ans (conj acc {:flavors flavors :all-likes (vec likes) :customers c})]
       (if (not= '() rems)
         (recur ans rems)
         ans))))
@@ -51,62 +51,33 @@
 
 (defn case->soln [a]
   (let [N      (:flavors a)
-        ;; In the batches, 1 means malted and 0 means unmalted. Keep
-        ;; two arrays, one denoting whether malted is acceptable, the
-        ;; other denoting whether unmalted is acceptable. Examine
-        ;; customers one at a time. If a customer declares exclusive
-        ;; like for unmalted or malted, mark the corresponding slot in
-        ;; the other array with a zero. If we ever find that both
-        ;; boxes for any flavor are zero, we're done and throw
-        ;; "IMPOSSIBLE." Otherwise, at the end, accumulate batches
-        ;; using malted only when unmalted is zero.
-        m-acceptable  (int-array N 1)
-        u-acceptable  (int-array N 1)
-        ;; Index of malt-acceptable is 0, of unmalt-acceptable 1.
-        acceptables   [m-acceptable u-acceptable]
+        C      (:customers a)
+        ms     (int-array N C)
+        us     (int-array N C)
+        as     [ms us]
         likes  (:all-likes a)
         ;; Each like is a list of a flavor index and a malted-or-not.
-        ;; Make the leaves into vectors.
-        mikes  (map #(map vec %) likes)
-        ;; The singleton likes are important, since they imply that
-        ;; the other alternative is unacceptable.
-        temp0  (try (doseq [mike mikes]
-                      (if (= (count mike) 1)
-                        (let [[flav malt?] (first mike)
-                              other (- 1 malt?)
-                              flav-idx (dec flav)
-                              ]
-                          (if (= 0 (aget (acceptables malt?) flav-idx))
-                              (throw (Exception. "IMPOSSIBLE")))
-                          (aset-int (acceptables other) flav-idx 0)
-                          )
-                        ))
-                    (catch Exception e (.getMessage e))
-                    )
-        ;; The doubletons are important since, if one of their likes
-        ;; is unacceptable, their other like is forced, which means
-        ;; that the malt-opposite of their other like is unaccetable.
-        temp1 (try (doseq [mike mikes]
-                     (if (= (count mike) 2)
-                       (let [[f1 m1?] (first mike)
-                             o1       (- 1 m1?)
-                             f1i      (dec f1)
-                             [f2 m2?] (second mike)
-                             o2       (- 1 m2?)
-                             f2i      (dec f2)
-                             
-                             ])
-                       )
-                     )
-                    (catch Exception e (.getMessage e))
+        ;; Make the leaves into vectors. Sort by count to get the most
+        ;; restrictive ones to the front, because they eliminate
+        ;; possibilities quickly.
+        mikes  (group-by count (map #(map vec %) likes))
+        ;; t0     (try (doseq [mike mikes]
+        ;;               (doseq [[f m?] mike]
+        ;;                 (dbg [f m?]))
+        ;;               )
+        ;;             (catch Exception e (.getMessage e)))
+        _      (doseq [mike mikes]
+                 (let [arity (mike 0)
+                       elements (mike 1)
+                       ]
                    )
-        nikes  (map #(map (fn [[flav malt]]
-                            {:flav flav, :malt malt})
-                          %)
-                    mikes)
+                 (dbg mike)
+                 )
         ]
-    (ppdbg (or temp0 {:m (vec m-acceptable)
-                      :u (vec u-acceptable)}))
+    (ppdbg  {:mikes mikes
+             :c C
+             :m (vec ms)
+             :u (vec us)})
     ))
 
 (defn -main
@@ -117,7 +88,7 @@
   (println (get-current-directory))
 
   (let [input (slurp
-               ;"/Users/rebcabin/Downloads/C-large-practice.in"
+               ;"/Users/rebcabin/Downloads/B-small-practice.in"
                "input.txt"
                )
         _     (spit "input.txt" input)
