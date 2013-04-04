@@ -1,5 +1,5 @@
 (ns okasaki-bfs.core
-  (:use sync-q/sync-q.core)
+  (:use sync-q.core)
   (:gen-class))
 
 (defmacro dbg [x]
