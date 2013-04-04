@@ -1,13 +1,11 @@
 (ns okasaki-bfs.core
-  (:use sync-q.core)
+  (:use sync-q/sync-q.core)
   (:gen-class))
 
 (defmacro dbg [x]
   `(let [x# ~x]
      (do (println '~x "~~>" x#)
          x#))) 
-
-
 
 (defn -main
   "I don't do a whole lot ... yet."
