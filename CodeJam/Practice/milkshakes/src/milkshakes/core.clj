@@ -56,10 +56,10 @@
         us     (int-array N C)
         as     [ms us]
         likes  (:all-likes a)
-        ;; Each like is a list of a flavor index and a malted-or-not.
-        ;; Make the leaves into vectors. Sort by count to get the most
-        ;; restrictive ones to the front, because they eliminate
-        ;; possibilities quickly.
+        ;; Each "like" is a list of a flavor index and a
+        ;; malted-or-not. Make the leaves into vectors. Sort by count
+        ;; to get the most restrictive ones to the front, because they
+        ;; eliminate possibilities quickly.
         mikes  (group-by count (map #(map vec %) likes))
         ;; t0     (try (doseq [mike mikes]
         ;;               (doseq [[f m?] mike]

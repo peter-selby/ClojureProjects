@@ -1,6 +1,6 @@
-(ns always-turn-left.core-test
+(ns okasaki-bfs.core-test
   (:use clojure.test
-        always-turn-left.core))
+        okasaki-bfs.core))
 
 (deftest a-test
   (testing "FIXME, I fail."

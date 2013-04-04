@@ -1,3 +1,3 @@
-# Introduction to always-turn-left
+# Introduction to okasaki-bfs
 
 TODO: write [great documentation](http://jacobian.org/writing/great-documentation/what-to-write/)
