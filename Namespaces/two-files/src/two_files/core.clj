@@ -1,5 +1,7 @@
 (ns two-files.core
-  (:require [two-files.kfile])
+  (:require [two-files.kfile :as k1]
+            [two-files.k2    :as k2]
+            )
   (:gen-class))
 
 (defn -main
@@ -8,5 +10,6 @@
   ;; work around dangerous default behaviour in Clojure
   (alter-var-root #'*read-eval* (constantly false))
 
-  (two-files.kfile/foo)
+  (k1/foo)
+  (k2/bar)
   (println "two-files.core/-main"))
