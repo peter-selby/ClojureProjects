@@ -20,5 +20,4 @@
    (Observable/filter (fn [x] (= 0 (mod x 2))))
    (.subscribe println))
 
-  ;;(Thread/sleep 200)
-  (println "Hello, World!"))
+  )
