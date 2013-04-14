@@ -132,3 +132,12 @@ ls -la
 (keys [:a 1])
 (def o (atom {:a 1}))
 (keys @o)
+reactive-backplane.elem
+reactive-backplane.elem/get
+(in-ns reactive-backplane.elem
+)
+reactive-backplane.elem/get
+(use reactive-backplane.elem)
+*ns*
+(in-ns reactive-backplane)
+(in-ns reactive-backplane.elem)
