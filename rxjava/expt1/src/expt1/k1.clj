@@ -1,4 +1,4 @@
-(ns expt1.k1.core ;;rx-clj.core
+(ns expt1.k1 ;;rx-clj.core
   (:refer-clojure :exclude [concat cons drop drop-while empty
                             filter first future
                             interpose into keep keep-indexed last
@@ -82,6 +82,8 @@
   [^Subscription s]
   (.unsubscribe s)
   s)
+
+;;; bbeckman this would not load
 
 (defn ^Subscription subscription
   "Create a new subscription that calls the given no-arg handler function"
