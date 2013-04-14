@@ -1,8 +1,8 @@
 (ns expt1.core
-  (:gen-class)
-  ;;(:require [expt1.k2 :as k2])
+  (:require [expt1.k2 :as k2])
   (:import [rx Observable Observer Subscription]
            [rx.util AtomicObservableSubscription])
+  (:gen-class)
   )
 
 ; --------------------------------------------------
@@ -43,7 +43,7 @@
    (.subscribe println))
 
   (->
-   (existingDataFromNumbers)
+   (k2/existingDataFromNumbers)
    (Observable/filter (fn [x] (= 0 (mod x 2))))
    (.subscribe println))
 
