@@ -5,33 +5,6 @@
   (:gen-class)
   )
 
-; --------------------------------------------------
-; Create Observable from Existing Data
-; --------------------------------------------------
-
-(defn existingDataFromNumbers []
-  (Observable/toObservable [1 2 3 4 5 6]))
-
-(defn existingDataFromNumbersUsingFrom []
-  (Observable/from [1 2 3 4 5 6]))
-
-(defn existingDataFromObjects []
-  (Observable/toObservable ["a" "b" "c"]))
-
-(defn existingDataFromObjectsUsingFrom []
-  (Observable/from ["a" "b" "c"]))
-
-(defn existingDataFromList []
-  (let [list [5, 6, 7, 8]]
-    (Observable/toObservable list)))
-
-(defn existingDataFromListUsingFrom []
-  (let [list [5, 6, 7, 8]]
-    (Observable/from list)))
-
-(defn existingDataWithJust []
-  (Observable/just "one object"))
-
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
