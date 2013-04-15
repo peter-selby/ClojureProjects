@@ -23,20 +23,47 @@
 ;;; the server. Its observers are proxies for the client that
 ;;; internally send messages to the client via websockets.
 
+(defn randomizedMock [mock]
+  (let [randrate (fn [] (str
+                        (/
+                         (Math/round (* 10000 (rand)))
+                         1000.0)))]
+    {"hitRateAggs"
+     [{"domain" "vendorinfoportal.amazon.com", "hitsPerSec" (randrate)}
+      {"domain" "w.amazon.com",                "hitsPerSec" (randrate)}
+      {"domain" "cr.amazon.com",               "hitsPerSec" (randrate)}
+      {"domain" "external",                    "hitsPerSec" (randrate)}
+      {"domain" "vendormaster.amazon.com",     "hitsPerSec" (randrate)}
+      {"domain" "permissions.amazon.com",      "hitsPerSec" (randrate)}
+      {"domain" "devcentral.amazon.com",       "hitsPerSec" (randrate)}
+      {"domain" "build.amazon.com",            "hitsPerSec" (randrate)}],
+     "referralMatrix"
+     [{"from" "vendorinfoportal.amazon.com", "to" "vendorinfoportal.amazon.com",
+       "refsPerSec" (randrate)}
+      {"from" "vendorinfoportal.amazon.com", "to" "w.amazon.com",
+       "refsPerSec" (randrate)}
+      {"from" "vendorinfoportal.amazon.com", "to" "external",
+       "refsPerSec" (randrate)}
+      {"from" "vendorinfoportal.amazon.com", "to" "vendormaster.amazon.com",
+       "refsPerSec" (randrate)}
+      {"from" "w.amazon.com", "to" "w.amazon.com", "refsPerSec" (randrate)}
+      {"from" "w.amazon.com", "to" "external", "refsPerSec" (randrate)}
+      {"from" "w.amazon.com",            "to" "vendorinfoportal.amazon.com",  "refsPerSec" (randrate)}
+      {"from" "vendormaster.amazon.com", "to" "vendormaster.amazon.com","refsPerSec" (randrate)}
+      {"from" "vendormaster.amazon.com", "to" "w.amazon.com",       "refsPerSec" (randrate)}
+      {"from" "vendormaster.amazon.com",       "to" "external",       "refsPerSec" (randrate)}
+      {"from" "permissions.amazon.com",       "to" "permissions.amazon.com",       "refsPerSec" (randrate)}
+      {"from" "devcentral.amazon.com",       "to" "devcentral.amazon.com",       "refsPerSec" (randrate)}]})
+  )
+
 (defn mockObservable [mock]
   (observable
    (fn [observer]
      (let [f (future
                (doseq [i (range 100)]
-                 (-> observer (.onNext mock))
+                 (-> observer (.onNext (randomizedMock mock)))
                  (Thread/sleep 1000)
                  )
-               #_(-> observer (.onNext "1"))
-               #_(Thread/sleep 1000)
-               #_(-> observer (.onNext "2"))
-               #_(Thread/sleep 1000)
-               #_(-> observer (.onNext "3"))
-               #_(-> observer (.onCompleted))
                )
            ]
        (Subscriptions/create #(future-cancel f))))))
