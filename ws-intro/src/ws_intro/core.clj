@@ -40,7 +40,7 @@
              json-message
              json/read-json
              (get-in [:data :message]))]
-    (.send conn (json/json-str
+    (.send conn (json/write-str
                  {:type "upcased"
                   :message (s/upper-case msg)}))
     ))
@@ -57,6 +57,9 @@
                 (println "WEBSOCKET OPENED"  conn)
                 (-> (mockObservable (getMock))
                     (.subscribe
+                     #_(fn [datum]
+                       (-> conn
+                           (.send json)))
                      println
                      ))
                 )
