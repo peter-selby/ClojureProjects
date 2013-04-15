@@ -88,6 +88,7 @@
 (defn ^Subscription subscription
   "Create a new subscription that calls the given no-arg handler function"
   [handler]
+  ;; (Subscriptions .create ???)
   (Observable/createSubscription handler))
 
 (defn chain

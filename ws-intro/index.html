@@ -11,11 +11,19 @@
     </script>
     <script>
       var ws = $.websocket("ws://127.0.0.1:8080/websocket", {
-      events: { 
-      upcased: function(e) { $("#content").html(e.message); }}});
+          events: { 
+              upcased: function(e) { $("#content").html('UPCASED: ' + e.message); },
+              normal:  function(e) { $("#content").html('NORMAL:  ' + e.message); }
+          }
+      });
 
-      $('#message').change(function(){
-      ws.send('message', {type: "downcase", message: $("#message").val()});});
+      $('#message').change(function() {
+          ws.send( 
+              'message', 
+              {type:    "downcase", 
+               message: $("#message").val()}
+          );
+      });
     </script>
   </body>
 </html>

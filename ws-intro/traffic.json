@@ -1,0 +1,24 @@
+{
+    "hitRateAggs"   :  [{ "domain" :  "vendorinfoportal.amazon.com",  "hitsPerSec": "3.1"}, 
+                        { "domain" :  "w.amazon.com",  "hitsPerSec": "1.2"},
+                        { "domain" :  "cr.amazon.com",  "hitsPerSec": ".2"},
+                        { "domain" :  "external",  "hitsPerSec": "5.6"},
+                        { "domain" :  "vendormaster.amazon.com",  "hitsPerSec": "2.5"},
+                        { "domain" :  "permissions.amazon.com",  "hitsPerSec": ".3"},
+                        { "domain" :  "devcentral.amazon.com",  "hitsPerSec": ".2"},
+                        { "domain" :  "build.amazon.com", "hitsPerSec": "0"}],
+                        
+    "referralMatrix" : [{ "from" : "vendorinfoportal.amazon.com", "to" : "vendorinfoportal.amazon.com", "refsPerSec" : "2.0"}, 
+                        { "from" : "vendorinfoportal.amazon.com", "to" : "w.amazon.com", "refsPerSec" : ".2"},
+                        { "from" : "vendorinfoportal.amazon.com", "to" : "external", "refsPerSec" : ".3"},
+                        { "from" : "vendorinfoportal.amazon.com", "to" : "vendormaster.amazon.com", "refsPerSec" : ".3"},
+                        { "from" : "w.amazon.com", "to" : "w.amazon.com", "refsPerSec" : ".5"},
+                        { "from" : "w.amazon.com", "to" : "external", "refsPerSec" : ".4"},
+                        { "from" : "w.amazon.com", "to" : "vendorinfoportal.amazon.com", "refsPerSec" : ".1"},
+                        { "from" : "vendormaster.amazon.com", "to" : "vendormaster.amazon.com", "refsPerSec" : "1.5"},
+                        { "from" : "vendormaster.amazon.com", "to" : "w.amazon.com", "refsPerSec" : ".1"},
+                        { "from" : "vendormaster.amazon.com", "to" : "external", "refsPerSec" : ".3"},
+                        { "from" : "permissions.amazon.com", "to" : "permissions.amazon.com", "refsPerSec" : ".2"},
+                        { "from" : "devcentral.amazon.com", "to" : "devcentral.amazon.com", "refsPerSec" : ".05"}
+                        ]
+}
