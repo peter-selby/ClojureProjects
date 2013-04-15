@@ -19,16 +19,25 @@
 
 (defn getMock [] (json/read-str (slurp "traffic.json")))
 
+;;; This observable represents data produced by real-time streams on
+;;; the server. Its observers are proxies for the client that
+;;; internally send messages to the client via websockets.
+
 (defn mockObservable [mock]
   (observable
    (fn [observer]
-     (let [f (future 
-               (-> observer (.onNext "1"))
-               (Thread/sleep 1000)
-               (-> observer (.onNext "2"))
-               (Thread/sleep 1000)
-               (-> observer (.onNext "3"))
-               (-> observer (.onCompleted)))
+     (let [f (future
+               (doseq [i (range 100)]
+                 (-> observer (.onNext mock))
+                 (Thread/sleep 1000)
+                 )
+               #_(-> observer (.onNext "1"))
+               #_(Thread/sleep 1000)
+               #_(-> observer (.onNext "2"))
+               #_(Thread/sleep 1000)
+               #_(-> observer (.onNext "3"))
+               #_(-> observer (.onCompleted))
+               )
            ]
        (Subscriptions/create #(future-cancel f))))))
 
@@ -60,9 +69,8 @@
                      (fn [datum]
                        (-> conn
                            (.send (json/write-str
-                                    {:type "normal"
+                                    {:type "hitdata"
                                      :message (str datum)}))))
-                     ; println
                      ))
                 )
 
