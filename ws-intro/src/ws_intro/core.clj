@@ -46,14 +46,22 @@
        "refsPerSec" (randrate)}
       {"from" "vendorinfoportal.amazon.com", "to" "vendormaster.amazon.com",
        "refsPerSec" (randrate)}
-      {"from" "w.amazon.com", "to" "w.amazon.com", "refsPerSec" (randrate)}
-      {"from" "w.amazon.com", "to" "external", "refsPerSec" (randrate)}
-      {"from" "w.amazon.com",            "to" "vendorinfoportal.amazon.com",  "refsPerSec" (randrate)}
-      {"from" "vendormaster.amazon.com", "to" "vendormaster.amazon.com","refsPerSec" (randrate)}
-      {"from" "vendormaster.amazon.com", "to" "w.amazon.com",       "refsPerSec" (randrate)}
-      {"from" "vendormaster.amazon.com",       "to" "external",       "refsPerSec" (randrate)}
-      {"from" "permissions.amazon.com",       "to" "permissions.amazon.com",       "refsPerSec" (randrate)}
-      {"from" "devcentral.amazon.com",       "to" "devcentral.amazon.com",       "refsPerSec" (randrate)}]})
+      {"from" "w.amazon.com", "to" "w.amazon.com",
+       "refsPerSec" (randrate)}
+      {"from" "w.amazon.com", "to" "external",
+       "refsPerSec" (randrate)}
+      {"from" "w.amazon.com", "to" "vendorinfoportal.amazon.com",
+       "refsPerSec" (randrate)}
+      {"from" "vendormaster.amazon.com", "to" "vendormaster.amazon.com",
+       "refsPerSec" (randrate)}
+      {"from" "vendormaster.amazon.com", "to" "w.amazon.com",
+       "refsPerSec" (randrate)}
+      {"from" "vendormaster.amazon.com", "to" "external",
+       "refsPerSec" (randrate)}
+      {"from" "permissions.amazon.com", "to" "permissions.amazon.com",
+       "refsPerSec" (randrate)}
+      {"from" "devcentral.amazon.com", "to" "devcentral.amazon.com",
+       "refsPerSec" (randrate)}]})
   )
 
 (defn mockObservable [mock]
