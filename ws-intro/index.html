@@ -13,7 +13,8 @@
       var ws = $.websocket("ws://127.0.0.1:8080/websocket", {
           events: { 
               upcased: function(e) { $("#content").html('UPCASED: ' + e.message); },
-              normal:  function(e) { $("#content").html('NORMAL:  ' + e.message); }
+              normal:  function(e) { $("#content").html('NORMAL:  ' + e.message); },
+              hitdata: function(e) { $("#content").html('HITDATA: ' + e.message); }
           }
       });
 

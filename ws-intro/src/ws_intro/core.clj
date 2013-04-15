@@ -57,10 +57,12 @@
                 (println "WEBSOCKET OPENED"  conn)
                 (-> (mockObservable (getMock))
                     (.subscribe
-                     #_(fn [datum]
+                     (fn [datum]
                        (-> conn
-                           (.send json)))
-                     println
+                           (.send (json/write-str
+                                    {:type "normal"
+                                     :message (str datum)}))))
+                     ; println
                      ))
                 )
 
