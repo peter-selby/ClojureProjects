@@ -33,55 +33,54 @@
    "devcentral.amazon.com",       
    "build.amazon.com",])
 
+(defn cheapGaussian [mean sigma]
+  (let [sqrt12 3.46410161514
+        n      4.0
+        r2     (* 2 sqrt12) ; sqrt(n * 12)
+        c      (fn [] (- (rand) 0.5))
+        r      (* r2 (+ (c) (c) (c) (c))) ; n calls of c
+        ] 
+    (+ mean (/ (* r sigma) n))
+    ))
+
 (defn randrate [] (str
                      (/
                       (Math/round (* 10000 (rand)))
                       1000.0)))
 
-#_(defn- randomizedDomainHits []
-  (map #({"domain" %, "hitsPerSec" (randrate)}) domains)
-  )
-
 (defn- randomizedDomainHits []
   (map (fn [domain] {"domain" domain, "hitsPerSec" (randrate)}) domains)
   )
 
+(def ^:private fromTos
+  [{:from ["vendorinfoportal.amazon.com"], :tos ["vendorinfoportal.amazon.com"
+                                               "w.amazon.com"
+                                               "external"
+                                               "vendormaster.amazon.com"]}
+   {:from ["w.amazon.com"], :tos ["w.amazon.com"
+                                "external"
+                                "vendorinfoportal.amazon.com"]}
+   {:from ["vendormaster.amazon.com"], :tos ["vendormaster.amazon.com"
+                                           "w.amazon.com"
+                                           "external"
+                                           "permissions.amazon.com"
+                                           "devcentral.amazon.com"
+                                           ]}]
+  )
+
+(defn- randomizedReferralMatrix []
+  (for [fromTo fromTos
+        from   (:from fromTo)
+        to     (:tos  fromTo)]
+    {"from" from, "to" to, "refsPerSec" (randrate)}
+    ))
+
 (defn randomizedMock [mock]
   {"hitRateAggs"
-   #_(randomizedDomainHits)
-   [{"domain" "vendorinfoportal.amazon.com", "hitsPerSec" (randrate)}
-      {"domain" "w.amazon.com",                "hitsPerSec" (randrate)}
-      {"domain" "cr.amazon.com",               "hitsPerSec" (randrate)}
-      {"domain" "external",                    "hitsPerSec" (randrate)}
-      {"domain" "vendormaster.amazon.com",     "hitsPerSec" (randrate)}
-      {"domain" "permissions.amazon.com",      "hitsPerSec" (randrate)}
-      {"domain" "devcentral.amazon.com",       "hitsPerSec" (randrate)}
-      {"domain" "build.amazon.com",            "hitsPerSec" (randrate)}],
+   (randomizedDomainHits)
    "referralMatrix"
-   [{"from" "vendorinfoportal.amazon.com", "to" "vendorinfoportal.amazon.com",
-     "refsPerSec" (randrate)}
-    {"from" "vendorinfoportal.amazon.com", "to" "w.amazon.com",
-     "refsPerSec" (randrate)}
-    {"from" "vendorinfoportal.amazon.com", "to" "external",
-     "refsPerSec" (randrate)}
-    {"from" "vendorinfoportal.amazon.com", "to" "vendormaster.amazon.com",
-     "refsPerSec" (randrate)}
-    {"from" "w.amazon.com", "to" "w.amazon.com",
-     "refsPerSec" (randrate)}
-    {"from" "w.amazon.com", "to" "external",
-     "refsPerSec" (randrate)}
-    {"from" "w.amazon.com", "to" "vendorinfoportal.amazon.com",
-     "refsPerSec" (randrate)}
-    {"from" "vendormaster.amazon.com", "to" "vendormaster.amazon.com",
-     "refsPerSec" (randrate)}
-    {"from" "vendormaster.amazon.com", "to" "w.amazon.com",
-     "refsPerSec" (randrate)}
-    {"from" "vendormaster.amazon.com", "to" "external",
-     "refsPerSec" (randrate)}
-    {"from" "permissions.amazon.com", "to" "permissions.amazon.com",
-     "refsPerSec" (randrate)}
-    {"from" "devcentral.amazon.com", "to" "devcentral.amazon.com",
-     "refsPerSec" (randrate)}]}
+   (randomizedReferralMatrix)
+   }
   )
 
 (defn mockObservable [mock]
