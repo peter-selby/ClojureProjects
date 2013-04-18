@@ -46,14 +46,26 @@
       :body
       json/parse-string))
 
+;; I'm reaching the endpoint but not able to transmit data. Not known
+;; why.
+(defn- postbad []
+  (-> (str site "/messages")
+      (client/post
+       {:body (json/generate-string {:data "test"})
+        :content-type :json
+        })
+      :body
+      json/parse-string))
+
 (defn -main
   [& args]
   {}
-  (println) (pprint (justget))
-  (println) (pprint (justput "jacker"))
-  (println) (pprint (getelems))
-  (println) (pprint (getelem-light 1))  ; null
-  (println) (pprint (getelem 1))        ; nil
-  (println) (pprint (putelem 1 {:tag 42}))
-  (println) (pprint (getelems))
+  (println "justget ")  (pprint (justget))
+  (println "justput ")  (pprint (justput "jacker"))
+  (println "getelems")  (pprint (getelems))
+  (println "getelem-light") (pprint (getelem-light 1))  ; null
+  (println "getelem 1") (pprint (getelem 1))        ; nil
+  (println "putelem 1") (pprint (putelem 1 {:tag 42}))
+  (println "getelems ") (pprint (getelems))
+  (println "postbad")   (pprint (postbad))
   )
