@@ -13,6 +13,9 @@
 
 ;;; ================================================================
 
+;;; This is a reminder that we can put type annotations on wrapper
+;;; functions to get a sliver of performance.
+
 (defn ^Observable observable
   "Create an observable from the given handler. When subscribed to, (handler observer)
   is called at which point, handler can start emitting values, etc."
@@ -57,6 +60,7 @@
          {"domain"     domain,
           "hitsPerSec" (randrate),
           "url"        domain,
+          "timestamp"  (System/currentTimeMillis)
           }) domains)
   )
 
@@ -116,29 +120,40 @@
                   :message (s/upper-case msg)}))
     ))
 
-(def bufferLength         50)
-(def domainCounts         (atom {}))
-(def bufferedDomainCounts (atom (rb/ring-buffer bufferLength)))
-(def test                 (atom 0))
+(def buffer-length       5)
+(def domain-hit-epochs   (atom {}))
 
-(defn beef-domain-counts [urls]
-  (doseq [url urls]
-    (println url)
-    (let [c (@domainCounts url)]
-      (swap! domainCounts #(into % {url (inc (or c 0))}))
-      )
-    ))
+(defn do-accum-times! [rates]
+  (doseq [rate rates]
+    (let [url  (rate "url")
+          buf  (@domain-hit-epochs url)
+          buf2 (conj (or buf (rb/ring-buffer buffer-length))
+                     (rate "timestamp"))
+          ]
+      (swap! domain-hit-epochs #(into % {url buf2})))))
+
+(defn hit-rates-from-epochs [epoch-maps]
+  (map (fn [[url buf]]
+         (let [duration (- (last buf) (first buf))
+               len      (count buf)
+               rate     (if (= 0 duration)
+                          (double 0)
+                          (/ (double len) (double duration) 1000.0))
+               ]
+           {url rate})
+         )
+       epoch-maps)
+  )
+
+(defn disconnectedCountsTest []
+  (-> (mockObservable (getMock))
+      (.map (fn [item]
+              (do-accum-times! (item "hitRateAggs"))
+              @domain-hit-epochs))
+      (.subscribe pp/pprint)))
 
 (defn -main []
   "Thanks to blog.jayfields.com and amalloy/ring-buffer AT github"
-  ;; Just a quick unit test to remind us how to call the ring buffer.
-  (pp/pprint (= [1 1 1 1]
-                (let [b (rb/ring-buffer 3)]
-                  [(if (= '(a b  ) (into b '(a b)))             1)
-                   (if (= '(c d e) (into b '(a b c d e)))       1)
-                   (if (= '(d e  ) (pop (into b '(a b c d e)))) 1)
-                   (if (= 'c (peek (into b '(a b c d e))))      1)
-                   ])))
   (let [server (WebServers/createWebServer 8080)]
     (doto server
       (.add "/websocket"
@@ -148,13 +163,8 @@
                 (println "WEBSOCKET OPENED"  conn)
                 (-> (mockObservable (getMock))
                     (.map (fn [item]
-                            (let [urls
-                                  (map #(% "url")
-                                       (get-in item ["hitRateAggs"]))]
-                              (beef-domain-counts urls)
-                              #_[(swap! test inc) urls]
-                              #_domainCounts
-                              )))
+                            (do-accum-times! (item "hitRateAggs"))
+                            (hit-rates-from-epochs @domain-hit-epochs)))
                     (.subscribe
                      (fn [datum]
                        (-> conn
