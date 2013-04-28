@@ -57,6 +57,11 @@
          (println {:key key, :elem-list e,
                   :json-response j})
          j ))
+  
+  (DELETE "/elems" []
+       (println "DELETE /elems")
+       (elem/clear)
+       (println {:elem-list (elem/list)}))
 
   (PUT "/elems/:key" [key data]
        (println "PUT /elems/" key)

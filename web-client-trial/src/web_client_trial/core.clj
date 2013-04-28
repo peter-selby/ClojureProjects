@@ -37,6 +37,10 @@
 (defn- justget []
   (->  site  client/get))
 
+(defn- justdelete []
+  (->  (str site "/elems")
+       client/delete))
+
 (defn- justput [nym]
   (-> site
       (client/put
