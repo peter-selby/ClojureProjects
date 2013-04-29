@@ -49,3 +49,4 @@
         "Impermissible to put empty vectors.")
     ))
 
+(run-tests)

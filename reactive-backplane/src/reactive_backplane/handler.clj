@@ -1,6 +1,7 @@
 (ns reactive-backplane.handler
   (:use     compojure.core)
-  (:use     clojure.pprint)             ; doesn't work
+  (:use     clojure.pprint)
+  ;; pprint requires a following (println <something>) to flush its buffer.
   (:use     ring.middleware.json-params)
   (:require [compojure.handler               :as handler]
             [compojure.route                 :as route  ]
@@ -34,54 +35,68 @@
    :body    (json/generate-string data)})
 
 (defroutes app-routes
-
+  
   (GET "/" []
        (println "GET /")
        (let [r (json-response {"hello" "json-get"})]
-         (println {:json-response r})
+         (pprint {:json-response r})
+         (println "")                   ; Flush pprint
          r ))
 
   (GET "/elems" []
        (println "GET /elems")
        (let [e (elem/list)
              j (json-response e)]
-         (println {:elem-list e, :json-response j})
+         (pprint {:elem-list e, :json-response j})
+         (println "")
          j ))
 
   (GET "/elems/:key" [key]
-       (println "GET /elems/" key)
+       (println (str "GET /elems/" key))
        ;; Clojure nil gets jsonized as {..., :body null},
        ;; which is invalid json
        (let [e (elem/get key)
              j (json-response e)]
-         (println {:key key, :elem-list e,
+         (pprint {:key key, :elem-list e,
                   :json-response j})
+         (println "")
          j ))
   
   (DELETE "/elems" []
-       (println "DELETE /elems")
-       (elem/clear)
-       (println {:elem-list (elem/list)}))
+          (println "DELETE /elems")
+          (elem/clear)
+          (pprint {:elem-list (elem/list)})
+          (println ""))
 
   (PUT "/elems/:key" [key data]
-       (println "PUT /elems/" key)
+       (println (str "PUT /elems/" key))
        (let [e (elem/put key data)
              j (json-response e)]
-         (println {:key key, :data data,
+         (pprint {:key key, :data data,
                   :elem-put e, :json-response j})
+         (println "")
          j ))
 
   (PUT "/" [name]
-       (println "PUT /")
-       (println name)
-       (println {:name name})
+       (println (str "PUT /" name))
+       (println "")
        (json-response {"hello" name}))
 
   (POST "/messages" [data]
-       (println "POST /messages")
-       (println data)
-       (json-response {"stuff" data})
-       )
+        (println (str "POST /messages" data))
+        (let [j (json-response {"stuff" data})]
+          (pprint j)
+          (println "")
+          j ))
+  
+  ;; The following form throws an exception. I recall 
+  ;; seeing this in reviewed code and I must re-examine.
+  #_(POST "/paramstest" data
+        (println "POST /paramstest" data)
+        (let [j (json-response {"stuff" data})]
+          (pprint j)
+          (println "")
+          j))
 
   (route/not-found "Not Found"))
 

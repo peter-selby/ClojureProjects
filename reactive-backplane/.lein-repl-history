@@ -141,3 +141,6 @@ reactive-backplane.elem/get
 *ns*
 (in-ns reactive-backplane)
 (in-ns reactive-backplane.elem)
+(user/clojuredocs "pprint")
+(user/clojuredocs 'pprint)
+(user/clojuredocs pprint)

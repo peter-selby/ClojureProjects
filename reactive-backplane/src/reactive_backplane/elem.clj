@@ -4,9 +4,10 @@
 ;;; ================================================================
 ;;; Puttable, two-level map
 ;;; http://stackoverflow.com/questions/630453/put-vs-post-in-rest
+;;; Each observable is a URI that keys to a map. 
 (def observables
   "Public repository for observables keyed by URIs."
-  (atom {}))
+  (ref {}))
 
 (defn list-observables
   "Produce a list of all extant observables in the reactive backplane."
@@ -55,3 +56,4 @@ or nil if the key is not present."
                                         ; (compare-and-set! elems
                                         ; @elems (atom {})
   )
+

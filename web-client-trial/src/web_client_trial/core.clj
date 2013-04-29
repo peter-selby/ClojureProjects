@@ -50,8 +50,6 @@
       :body
       json/parse-string))
 
-;; I'm reaching the endpoint but not able to transmit data. Not known
-;; why.
 (defn- postbad []
   (-> (str site "/messages")
       (client/post
@@ -63,13 +61,32 @@
 
 (defn -main
   [& args]
-  {}
-  (println "justget ")  (pprint (justget))
-  (println "justput ")  (pprint (justput "jacker"))
-  (println "getelems")  (pprint (getelems))
-  (println "getelem-light") (pprint (getelem-light 1))  ; null
-  (println "getelem 1") (pprint (getelem 1))        ; nil
-  (println "putelem 1") (pprint (putelem 1 {:tag 42}))
-  (println "getelems ") (pprint (getelems))
-  (println "postbad")   (pprint (postbad))
+  (println "justget "       (justget))
+  (println "justput "       (justput "jacker"))
+  (println "getelems"       (getelems))
+  (println "getelem-light"  (getelem-light 1))  ; null
+  (println "getelem 1"      (getelem 1))        ; nil
+  (println "putelem \"k\""  (putelem "k" {:tag 42}))
+  (println "putelem \"q\""  (putelem "q" {:tag 37}))
+  (println "getelems "      (getelems))
+  (println "postbad"        (postbad))
+  (println "putelem \"http\"" 
+             (putelem "http" {:observer "some-document"}))
+  #_(justdelete)
   )
+(-main)
+;;; The paramstest endpoint is broken. It's using an
+;;; invalid form of a route description.
+#_(-> (str site "/paramstest")
+    (client/post
+      {:body (json/generate-string {:data "params"})
+       :content-type :json
+       })
+    :body
+    json/parse-string)
+
+
+    
+    
+    
+    
