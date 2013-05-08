@@ -4,7 +4,11 @@ pom.xml
 /lib/
 /classes/
 /targets/
-.lein-repl-history
+/.lein-repl-history
+/.lein-*
+/.env
+/pom.xml
+/targety
 .lein-deps-sum
 *~
 \#*

@@ -2,6 +2,9 @@
 /lib
 /classes
 /checkouts
+/.lein-*
+/pom.xml
+/.env
 pom.xml
 *.jar
 *.class
@@ -9,4 +12,4 @@ pom.xml
 .lein-failures
 .lein-plugins
 .lein-env
-.lein-repl-history
+/.lein-repl-history
