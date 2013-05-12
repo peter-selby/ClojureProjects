@@ -40,7 +40,7 @@
        (println "GET /")
        (let [r (json-response {"hello" "json-get"})]
          (pprint {:json-response r})
-         (newline)                   ; Flush pprint
+         (println "")                   ; Flush pprint
          r ))
 
   (GET "/elems" []
@@ -48,7 +48,7 @@
        (let [e (elem/list)
              j (json-response e)]
          (pprint {:elem-list e, :json-response j})
-         (newline)
+         (println "")
          j ))
 
   (GET "/elems/:key" [key]
@@ -59,14 +59,14 @@
              j (json-response e)]
          (pprint {:key key, :elem-list e,
                   :json-response j})
-         (newline)
+         (println "")
          j ))
   
   (DELETE "/elems" []
           (println "DELETE /elems")
           (elem/clear)
           (pprint {:elem-list (elem/list)})
-          (newline))
+          (println ""))
 
   (PUT "/elems/:key" [key data]
        (println (str "PUT /elems/" key))
@@ -74,7 +74,7 @@
              j (json-response e)]
          (pprint {:key key, :data data,
                   :elem-put e, :json-response j})
-         (newline)
+         (println "")
          j ))
 
   (PUT "/" [name]
@@ -86,7 +86,7 @@
         (println (str "POST /messages" data))
         (let [j (json-response {"stuff" data})]
           (pprint j)
-          (newline)
+          (println "")
           j ))
   
   ;; The following form throws an exception. I recall 
@@ -95,7 +95,7 @@
         (println "POST /paramstest" data)
         (let [j (json-response {"stuff" data})]
           (pprint j)
-          (newline)
+          (println "")
           j))
 
   (route/not-found "Not Found"))
