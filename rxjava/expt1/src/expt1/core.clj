@@ -27,6 +27,7 @@
 ;;; |___/_||_|_| |_|_||_|_\_\_|_||_\__, |
 ;;;                                |___/
 
+
 ;;; First, let's just take the first two numbers out of a vector of
 ;;; numbers and turn them into oseq. This illustrates "take", a method
 ;;; that often shortens sequences.
@@ -45,6 +46,7 @@
 ;;; | (_ | '_/ _ \ V  V / | ' \/ _` |
 ;;;  \___|_| \___/\_/\_/|_|_||_\__, |
 ;;;                            |___/
+
 
 ;;; Now, let's transform each number x into a vector of numbers, adding
 ;;; x to some familiar constants, then flattening the results exactly
@@ -93,6 +95,13 @@
 
 @collector
 
+;;;   __
+;;;  / _|_ _ ___ _ __ ___ ___ ___ __ _
+;;; |  _| '_/ _ \ '  \___(_-</ -_) _` |
+;;; |_| |_| \___/_|_|_|  /__/\___\__, |
+;;;                                 |_|
+
+
 ;;; We'd like to clean up the ugly #(Observable/toObservable ...) into
 ;;; a composition, but we can't (comp Observable/toObservable ...) since
 ;;; it's a Java method and does not implement Clojure IFn. We fix this
@@ -108,6 +117,12 @@
  )
 
 @collector
+
+;;;          _
+;;;  _ _ ___| |_ _  _ _ _ _ _
+;;; | '_/ -_)  _| || | '_| ' \
+;;; |_| \___|\__|\_,_|_| |_||_|
+
 
 ;;; We notice that the monadic "return" is missing from "rxjava 0.9.0",
 ;;; so we add it as follows. This is doing some junk-work -- puts the
@@ -125,6 +140,12 @@
  )
 
 @collector
+
+;;;     _ _    _   _         _
+;;;  __| (_)__| |_(_)_ _  __| |_
+;;; / _` | (_-<  _| | ' \/ _|  _|
+;;; \__,_|_/__/\__|_|_||_\__|\__|
+
 
 ;;; Rx is supposed to have a couple of operators: "disinct" and
 ;;; "distinctUntilChanged", but RxJava 0.9.0 doesn't seem to
@@ -149,7 +170,7 @@
 
 @collector
 
-;;; Now, we package and test.
+;;; Package and test.
 
 (defn distinct [oseq]
   (-> oseq
@@ -166,6 +187,21 @@
 
 @collector
 
+;;;     _ _    _   _         _
+;;;  __| (_)__| |_(_)_ _  __| |_
+;;; / _` | (_-<  _| | ' \/ _|  _|
+;;; \__,_|_/__/\__|_|_||_\__|\__|
+;;;      _   _     _   _ _  ___ _                          _
+;;;     | | | |_ _| |_(_) |/ __| |_  __ _ _ _  __ _ ___ __| |
+;;;     | |_| | ' \  _| | | (__| ' \/ _` | ' \/ _` / -_) _` |
+;;;      \___/|_||_\__|_|_|\___|_||_\__,_|_||_\__, \___\__,_|
+;;;                                           |___/
+
+
+;;; The following solution is correct but unacceptable because it consumes
+;;; the entire source oseq before producing values. Such is not necessary
+;;; with distinct-until-changed: we only need to remember one back. Still,
+;;; to make the point:
 
 (reset! collector [])
 (->
@@ -178,8 +214,8 @@
                  (if (and l (= x l)) ; accounts for legit nils
                    acc
                    (conj acc x)))))
- ;; We now have a singleton obl containing a set of unique characters.
- ;; To promote this back into an obl of chars, we do:
+ ;; We now have a singleton obl containing representatives of runs of non-
+ ;; distinct characters. Slurp it back into the monad:
  (.mapMany from-seq)
 
  (.subscribe collect)
@@ -188,6 +224,15 @@
 @collector
 
 (reset! collector [])
+
+;;; Better is to keep a mutable buffer of length one. It could be an atom
+;;; if we had the opposite of "compare-and-set!"; an atomic primitive that
+;;; sets the value only if it's NOT equal to its current value. "compare-and
+;;; set!" sets the atom to a newval if its current value is equal to an
+;;; oldval. It's easy enough to get the desired semantics with a Ref and
+;;; software-transactional memory, the only wrinkle being that the container
+;;; must be defined outside the mapMany and the function that mapMany applies.
+;;; However, this solution will not materialize the entire input sequence.
 
 (let [exploded (->
                 (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
@@ -208,18 +253,53 @@
       (.subscribe collect)))
 @collector
 
-(reset! collector [])
+;;; Package and test:
 
+(defn distinct-until-changed [oseq]
+  (let [last-container (ref [])]
+    (-> oseq
+        (.mapMany (fn [x]
+                    (dosync
+                     (let [l (last @last-container)]
+                       (if (and l (= x l))
+                         (Observable/empty)
+                         (do
+                           (ref-set last-container [x])
+                           (return x))))))))))
+
+(reset! collector [])
+(->
+  (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
+  (.mapMany (comp from-seq string-explode))
+  (distinct-until-changed)
+  (.subscribe collect)
+)
 @collector
+
+;;; It's well-behaved on an empty input:
+
+(reset! collector [])
+(->
+  (Observable/toObservable [])
+  (.mapMany (comp from-seq string-explode))
+  (distinct-until-changed)
+  (.subscribe collect)
+)
+@collector
+
+;;;   ___  _   _              ___                     _
+;;;  / _ \| |_| |_  ___ _ _  | __|_ ____ _ _ __  _ __| |___ ___
+;;; | (_) |  _| ' \/ -_) '_| | _|\ \ / _` | '  \| '_ \ / -_|_-<
+;;;  \___/ \__|_||_\___|_|   |___/_\_\__,_|_|_|_| .__/_\___/__/
+;;;                                             |_|
+
+
+(reset! collector [])
+(.subscribe (k2/customObservableBlocking) collect)
+@collector
+
 (defn -main
   [& args]
-
-  (->
-   (k2/existingDataFromNumbers)
-   (Observable/filter (fn [x] (= 0 (mod x 2))))
-   (.subscribe println))
-
-  (.subscribe (k2/customObservableBlocking) println)
 
   (.subscribe (k2/customObservableNonBlocking) println)
 

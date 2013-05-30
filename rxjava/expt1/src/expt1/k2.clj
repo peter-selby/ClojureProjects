@@ -96,7 +96,8 @@
     (fn [observer]
       (let [f (future
                 (doseq [articleName wikipediaArticleNames]
-                  (-> observer (.onNext (http/get (str "http://en.wikipedia.org/wiki/" articleName)))))
+                  (-> observer
+                      (.onNext (http/get (str "http://en.wikipedia.org/wiki/" articleName)))))
                 ; after sending response to onnext we complete the sequence
                 (-> observer .onCompleted))]
         ; a subscription that cancels the future if unsubscribed
@@ -250,7 +251,8 @@
       (let [f (future
                 (try
                   (doseq [articleName wikipediaArticleNames]
-                    (-> observer (.onNext (http/get (str "http://en.wikipedia.org/wiki/" articleName)))))
+                    (-> observer
+                        (.onNext (http/get (str "http://en.wikipedia.org/wiki/" articleName)))))
                   ;(catch Exception e (prn "exception")))
                   (catch Exception e (-> observer (.onError e))))
                 ; after sending response to onNext we complete the sequence
@@ -260,6 +262,7 @@
 
 ; To see output
 (comment
-  (-> (fetchWikipediaArticleAsynchronouslyWithErrorHandling ["Tiger" "NonExistentTitle" "Elephant"])
+  (-> (fetchWikipediaArticleAsynchronouslyWithErrorHandling
+       ["Tiger" "NonExistentTitle" "Elephant"])
     (.subscribe #(println "--- Article ---\n" (subs (:body %) 0 125) "...")
                 #(println "--- Error ---\n" (.getMessage %)))))
