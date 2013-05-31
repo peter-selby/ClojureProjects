@@ -1,27 +1,38 @@
 (ns expt1.core
-  (:require [expt1.k2 :as k2])
+  (:require [expt1.k2 :as k2]
+             clojure.string
+             clojure.pprint)
   (:refer-clojure :exclude [distinct])
   (:import [rx Observable])
   )
 
-;;; Load this file into LightTable (workspace tab) and "make current
-;;; editor an instarepl" (command tab).
+;;; Load this file into LightTable (using the workspace tab) and "make
+;;; current editor an instarepl" (using the command tab).
 
 ;;; The current rx library has none of the co-monadic operators such
-;;; as "first" and "last". Let us make an atomic, external collector
-;;; for extracting items from an oseq (observable sequence) by
-;;; mutating side-effects (horrors!). If we had a way of taking
-;;; results out of the oseq, then the following would be approximately
-;;; the same as (.reduce oseq [] conj).
+;;; as "first" and "last". Let us make atomic, external collectors for
+;;; extracting items from an oseq (observable sequence) by mutating
+;;; side-effects (horrors!).
 
+(defn- subscribe-collectors [obl]
+  (let [onNextCollector      (atom     [])
+        onErrorCollector     (atom    nil)
+        onCompletedCollector (atom  false)
+        awaiter              (agent false)]
+    (letfn [(collect-next      [item] (swap!  onNextCollector conj item))
+            (collect-error     [excp] (reset! onErrorCollector     excp))
+            (collect-completed [    ] (reset! onCompletedCollector true)
+                                      (set awaiter (fn [_] true)))
+            (report-collectors [    ] {:onNext      @onNextCollector
+                                       :onError     @onErrorCollector
+                                       :onCompleted @onCompletedCollector})]
+      (-> obl
+          (.subscribe collect-next collect-error collect-completed))
+      (if (await-for 10000 awaiter)
+        (report-collectors)
+        (throw (Exception. "observable timed out (10 sec)"))))
+  ))
 
-(def ^:private collector (atom []))
-(defn- collect [item]
-  (swap! collector conj item))
-
-(def ^:private onNextCollector (atom []))
-(def ^:private onCompletedCollector (atom false))
-(def ^:private onErrorCollector (atom nil))
 
 ;;;  ___ _        _      _   _
 ;;; / __| |_  _ _(_)_ _ | |_(_)_ _  __ _
@@ -34,14 +45,11 @@
 ;;; numbers and turn them into oseq. This illustrates "take", a method
 ;;; that often shortens sequences.
 
-(reset! collector [])
 (->
  (Observable/toObservable [1 2 3])
  (.take 2)
- (.subscribe collect)
+ (subscribe-collectors)
  )
-
-@collector
 
 ;;;   ___                _
 ;;;  / __|_ _ _____ __ _(_)_ _  __ _
@@ -58,27 +66,21 @@
 ;;; which is called "SelectMany" in many Rx documents (.e.g.,
 ;;; http://bit.ly/18Bot23).
 
-(reset! collector [])
 (->
  (Observable/toObservable [1 2 3])
  (.take 2)
  (.mapMany
   #(Observable/toObservable (map (partial + %) [42 43 44])))
- (.subscribe collect)
+ (subscribe-collectors)
  )
-
-@collector
 
 ;;; Let's operate on strings.
 
-(reset! collector [])
 (->
  (Observable/toObservable ["one" "two" "three"])
  (.take 2)
- (.subscribe collect)
+ (subscribe-collectors)
  )
-
-@collector
 
 ;;; "seq" explodes strings into lazy sequences of characters:
 
@@ -88,14 +90,11 @@
 
 (def string-explode seq)
 
-(reset! collector [])
 (->
  (Observable/toObservable ["one" "two" "three"])
  (.mapMany #(Observable/toObservable (string-explode %)))
- (.subscribe collect)
+ (subscribe-collectors)
  )
-
-@collector
 
 ;;;   __
 ;;;  / _|_ _ ___ _ __ ___ ___ ___ __ _
@@ -111,14 +110,11 @@
 
 (defn from-seq [s] (Observable/toObservable s))
 
-(reset! collector [])
 (->
  (from-seq ["one" "two" "three"])
  (.mapMany (comp from-seq string-explode))
- (.subscribe collect)
+ (subscribe-collectors)
  )
-
-@collector
 
 ;;;          _
 ;;;  _ _ ___| |_ _  _ _ _ _ _
@@ -133,15 +129,13 @@
 
 (defn return [item] (from-seq [item]))
 
-(reset! collector [])
 (->
  (from-seq ["one" "two" "three"])
  (.mapMany (comp from-seq string-explode))
  (.mapMany return)
- (.subscribe collect)
+ (subscribe-collectors)
  )
 
-@collector
 
 ;;;     _ _    _   _         _
 ;;;  __| (_)__| |_(_)_ _  __| |_
@@ -153,7 +147,6 @@
 ;;; "distinctUntilChanged", but RxJava 0.9.0 doesn't seem to
 ;;; have them yet. We can fake them as follows:
 
-(reset! collector [])
 (->
  (Observable/toObservable ["one" "two" "three"])
  (.mapMany (comp from-seq string-explode))
@@ -167,10 +160,8 @@
  ;; before producing its values. The operator "distinct" simply won't
  ;; work on a non-finite oseq.
 
- (.subscribe collect)
+ (subscribe-collectors)
  )
-
-@collector
 
 ;;; Package and test.
 
@@ -179,15 +170,12 @@
       (.reduce #{} conj)
       (.mapMany from-seq)))
 
-(reset! collector [])
 (->
  (Observable/toObservable ["one" "two" "three"])
  (.mapMany (comp from-seq string-explode))
  (distinct)
- (.subscribe collect)
+ (subscribe-collectors)
  )
-
-@collector
 
 ;;;     _ _    _   _         _
 ;;;  __| (_)__| |_(_)_ _  __| |_
@@ -205,7 +193,6 @@
 ;;; with distinct-until-changed: we only need to remember one back. Still,
 ;;; to make the point:
 
-(reset! collector [])
 (->
  (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
  (.mapMany (comp from-seq string-explode))
@@ -220,12 +207,8 @@
  ;; distinct characters. Slurp it back into the monad:
  (.mapMany from-seq)
 
- (.subscribe collect)
+ (subscribe-collectors)
  )
-
-@collector
-
-(reset! collector [])
 
 ;;; Better is to keep a mutable buffer of length one. It could be an atom
 ;;; if we had the opposite of "compare-and-set!"; an atomic primitive that
@@ -252,8 +235,7 @@
                        (do
                          (ref-set last-container [x])
                          (return x)))))))
-      (.subscribe collect)))
-@collector
+      (subscribe-collectors)))
 
 ;;; Package and test:
 
@@ -269,25 +251,21 @@
                            (ref-set last-container [x])
                            (return x))))))))))
 
-(reset! collector [])
 (->
   (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
   (.mapMany (comp from-seq string-explode))
   (distinct-until-changed)
-  (.subscribe collect)
+  (subscribe-collectors)
 )
-@collector
 
 ;;; It's well-behaved on an empty input:
 
-(reset! collector [])
 (->
   (Observable/toObservable [])
   (.mapMany (comp from-seq string-explode))
   (distinct-until-changed)
-  (.subscribe collect)
+  (subscribe-collectors)
 )
-@collector
 
 ;;;   ___  _   _              ___                     _
 ;;;  / _ \| |_| |_  ___ _ _  | __|_ ____ _ _ __  _ __| |___ ___
@@ -295,15 +273,21 @@
 ;;;  \___/ \__|_||_\___|_|   |___/_\_\__,_|_|_|_| .__/_\___/__/
 ;;;                                             |_|
 
+(defn flip [f2] (fn [x y] (f2 y x)))
+(-> (k2/customObservableBlocking)
+    (.map (partial (flip clojure.string/split) #"_"))
+    (.map (fn [[a b]] [a (Integer/parseInt b)]))
+    (.filter (fn [[a b]] (= 0 (mod b 7))))
+    (subscribe-collectors))
 
-(reset! collector [])
-(.subscribe (k2/customObservableBlocking) collect)
-@collector
+(-> (k2/customObservableNonBlocking)
+    #_(.map (partial (flip clojure.string/split) #"_"))
+    #_(.map (fn [[a b]] [a (Integer/parseInt b)]))
+    #_(.filter (fn [[a b]] (= 0 (mod b 7))))
+    (subscribe-collectors))
 
 (defn -main
   [& args]
-
-  (.subscribe (k2/customObservableNonBlocking) println)
 
   (->
    (k2/fetchWikipediaArticleAsynchronously ["Tiger" "Elephant"])
