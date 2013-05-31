@@ -1,4 +1,6 @@
-(ns observablecore
+(ns expt1.core
+  (:require [expt1.k2 :as k2])
+  (:refer-clojure :exclude [distinct])
   (:import [rx Observable])
   )
 
