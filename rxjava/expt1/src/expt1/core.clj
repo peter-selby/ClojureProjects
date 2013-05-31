@@ -3,7 +3,7 @@
              clojure.string
              clojure.pprint)
   (:refer-clojure :exclude [distinct])
-  (:import [rx Observable])
+  (:import [rx Observable subscriptions.Subscriptions])
   )
 
 ;;; Load this file into LightTable (using the workspace tab) and "make
@@ -17,21 +17,18 @@
 (defn- subscribe-collectors [obl]
   (let [onNextCollector      (atom     [])
         onErrorCollector     (atom    nil)
-        onCompletedCollector (atom  false)
-        awaiter              (agent false)]
-    (letfn [(collect-next      [item] (swap!  onNextCollector conj item))
-            (collect-error     [excp] (reset! onErrorCollector     excp))
-            (collect-completed [    ] (reset! onCompletedCollector true)
-                                      (set awaiter (fn [_] true)))
-            (report-collectors [    ] {:onNext      @onNextCollector
-                                       :onError     @onErrorCollector
-                                       :onCompleted @onCompletedCollector})]
+        onCompletedCollector (promise    )]
+    (letfn [(collect-next      [item] (swap!   onNextCollector conj item))
+            (collect-error     [excp] (reset!  onErrorCollector     excp))
+            (collect-completed [    ] (deliver onCompletedCollector true))
+            (report-collectors [    ]
+              {:onNext      @onNextCollector
+               :onError     @onErrorCollector
+               :onCompleted (deref onCompletedCollector 1000 false)})]
       (-> obl
           (.subscribe collect-next collect-error collect-completed))
-      (if (await-for 10000 awaiter)
-        (report-collectors)
-        (throw (Exception. "observable timed out (10 sec)"))))
-  ))
+      (report-collectors)
+      )))
 
 
 ;;;  ___ _        _      _   _
