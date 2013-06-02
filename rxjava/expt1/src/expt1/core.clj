@@ -1,6 +1,5 @@
-;;; Load this file into LightTable (using LightTable's workspace tab)
-;;; and "make current editor an instarepl" (using LightTable's command
-;;; tab).
+;;; Run this file by going to the project directory (the directory
+;;; with 'project.clj' in it) and saying 'lein repl'.
 
 (ns expt1.core
   (:require [expt1.k2               :as k2  ]
@@ -28,7 +27,7 @@
 ;;;  / __|___ _ _  ___ _ _(_)__   / _ \| |__ ___ ___ _ ___ _____ _ _
 ;;; | (_ / -_) ' \/ -_) '_| / _| | (_) | '_ (_-</ -_) '_\ V / -_) '_|
 ;;;  \___\___|_||_\___|_| |_\__|  \___/|_.__/__/\___|_|  \_/\___|_|
-
+;;;
 
 ;;; The current rx library has no co-monadic operators such as "first"
 ;;; and "last". Let us make atomic, external collectors for extracting
@@ -101,6 +100,7 @@
  (Observable/toObservable [1 2 3])
  (.take 2)
  (subscribe-collectors)
+ (pdump)
  )
 
 ;;;   ___                _
@@ -124,6 +124,7 @@
  (.mapMany
   #(Observable/toObservable (map (partial + %) [42 43 44])))
  (subscribe-collectors)
+ (pdump)
  )
 
 ;;; Let's operate on strings.
@@ -132,6 +133,7 @@
  (Observable/toObservable ["one" "two" "three"])
  (.take 2)
  (subscribe-collectors)
+ (pdump)
  )
 
 ;;; "seq" explodes strings into lazy sequences of characters:
@@ -146,6 +148,7 @@
  (Observable/toObservable ["one" "two" "three"])
  (.mapMany #(Observable/toObservable (string-explode %)))
  (subscribe-collectors)
+ (pdump)
  )
 
 ;;;   __
@@ -167,6 +170,7 @@
  (from-seq ["one" "two" "three"])
  (.mapMany (comp from-seq string-explode))
  (subscribe-collectors)
+ (pdump)
  )
 
 ;;;          _
@@ -187,6 +191,7 @@
  (.mapMany (comp from-seq string-explode))
  (.mapMany return)
  (subscribe-collectors)
+ (pdump)
  )
 
 ;;;     _ _    _   _         _
@@ -213,6 +218,7 @@
  ;; work on a non-finite oseq.
 
  (subscribe-collectors)
+ (pdump)
  )
 
 ;;; Package and test.
@@ -227,6 +233,7 @@
  (.mapMany (comp from-seq string-explode))
  (distinct)
  (subscribe-collectors)
+ (pdump)
  )
 
 ;;;     _ _    _   _         _
@@ -260,6 +267,7 @@
  (.mapMany from-seq)
 
  (subscribe-collectors)
+ (pdump)
  )
 
 ;;; Better is to keep a mutable buffer of length one. It could be an atom
@@ -287,7 +295,8 @@
                        (do
                          (ref-set last-container [x])
                          (return x)))))))
-      (subscribe-collectors)))
+      (subscribe-collectors)
+      (pdump)))
 
 ;;; Package and test:
 
@@ -308,6 +317,7 @@
   (.mapMany (comp from-seq string-explode))
   (distinct-until-changed)
   (subscribe-collectors)
+  (pdump)
 )
 
 ;;; It's well-behaved on an empty input:
@@ -317,15 +327,21 @@
   (.mapMany (comp from-seq string-explode))
   (distinct-until-changed)
   (subscribe-collectors)
+  (pdump)
 )
 
-;;;   ___  _   _              ___                     _
-;;;  / _ \| |_| |_  ___ _ _  | __|_ ____ _ _ __  _ __| |___ ___
-;;; | (_) |  _| ' \/ -_) '_| | _|\ \ / _` | '  \| '_ \ / -_|_-<
-;;;  \___/ \__|_||_\___|_|   |___/_\_\__,_|_|_|_| .__/_\___/__/
-;;;                                             |_|
-
 (defn flip [f2] (fn [x y] (f2 y x)))
+
+;;;  ___              _                             
+;;; / __|_  _ _ _  __| |_  _ _ ___ _ _  ___ _  _ ___
+;;; \__ \ || | ' \/ _| ' \| '_/ _ \ ' \/ _ \ || (_-<
+;;; |___/\_, |_||_\__|_||_|_| \___/_||_\___/\_,_/__/
+;;;      |__/                                       
+;;;   ___  _                         _    _     
+;;;  / _ \| |__ ___ ___ _ ___ ____ _| |__| |___ 
+;;; | (_) | '_ (_-</ -_) '_\ V / _` | '_ \ / -_)
+;;;  \___/|_.__/__/\___|_|  \_/\__,_|_.__/_\___|
+;;;                                             
 
 (defn customObservableBlocking []
   "A custom Observable whose 'subscribe' method does not return until
@@ -350,7 +366,20 @@
     (.map (partial (flip clojure.string/split) #"_"))
     (.map (fn [[a b]] [a (Integer/parseInt b)]))
     (.filter (fn [[a b]] (= 0 (mod b 7))))
-    (subscribe-collectors))
+    (subscribe-collectors)
+    (pdump)
+    )
+
+;;;    _                    _                             
+;;;   /_\   ____  _ _ _  __| |_  _ _ ___ _ _  ___ _  _ ___
+;;;  / _ \ (_-< || | ' \/ _| ' \| '_/ _ \ ' \/ _ \ || (_-<
+;;; /_/ \_\/__/\_, |_||_\__|_||_|_| \___/_||_\___/\_,_/__/
+;;;            |__/                                       
+;;;   ___  _                         _    _     
+;;;  / _ \| |__ ___ ___ _ ___ ____ _| |__| |___ 
+;;; | (_) | '_ (_-</ -_) '_\ V / _` | '_ \ / -_)
+;;;  \___/|_.__/__/\___|_|  \_/\__,_|_.__/_\___|
+;;;                                             
 
 (defn customObservableNonBlocking []
   "A custom Observable whose 'subscribe' method returns immediately
@@ -372,7 +401,15 @@
     (.map (partial (flip clojure.string/split) #"_"))
     (.map (fn [[a b]] [a (Integer/parseInt b)]))
     (.filter (fn [[a b]] (= 0 (mod b 7))))
-    (subscribe-collectors))
+    (subscribe-collectors)
+    (pdump)
+    )
+
+;;;    _                    _     __      __   _      ___                  
+;;;   /_\   ____  _ _ _  __| |_   \ \    / /__| |__  | _ \__ _ __ _ ___ ___
+;;;  / _ \ (_-< || | ' \/ _| ' \   \ \/\/ / -_) '_ \ |  _/ _` / _` / -_|_-<
+;;; /_/ \_\/__/\_, |_||_\__|_||_|   \_/\_/\___|_.__/ |_| \__,_\__, \___/__/
+;;;            |__/                                           |___/        
 
 (defn asynchronousWikipediaArticleObservable [names]
   "Fetch a list of Wikipedia articles asynchronously.
@@ -383,10 +420,12 @@
      (let [f (future
                (doseq [name names]
                  (-> observer
+                     ;; Use "enlive" to parse & scrape html:
                      (.onNext
                       (html/html-resource
                        (java.net.URL.
                         (str "http://en.wikipedia.org/wiki/" name))))
+                     ;; Netflix originally used strings, but...
                      #_(.onNext (http/get
                                (str "http://en.wikipedia.org/wiki/" name)))
                      )
@@ -398,21 +437,20 @@
        (Subscriptions/create #(future-cancel f))))))
 
 ;;; There is something in the "Atom" web page that xml/parse does not
-;;; like. Rather than debug that, let's find another way to scrape the
-;;; web page.
+;;; like. Rather than debug that, let's use enlive
 
-#_(defn zip-str [s]
+(defn zip-str [s]
   (zip/xml-zip 
    (xml/parse 
     (java.io.ByteArrayInputStream. 
      (.getBytes s)))))
 
-(pdump (->>
-        ((subscribe-collectors
-          (asynchronousWikipediaArticleObservable ["Atom" "Molecule"])
-          5000)
-         :onNext)
-        (map #(html/select % [:title]))
-        ))
+(->>
+ ((subscribe-collectors
+   (asynchronousWikipediaArticleObservable ["Atom" "Molecule"])
+   5000)
+  :onNext)
+ (map #(html/select % [:title]))
+ (pdump))
 
 (pdump (+ 4 3))
