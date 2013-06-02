@@ -1,4 +1,4 @@
-(ns expt1.k2 ;; rx.lang.clojure.examples.rx-examples
+(ns expt2.k2 ;; rx.lang.clojure.examples.rx-examples
   (:import rx.Observable rx.subscriptions.Subscriptions)
   (:require [clj-http.client :as http]))
 

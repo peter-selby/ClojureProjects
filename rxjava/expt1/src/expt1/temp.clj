@@ -5,7 +5,8 @@
 (ns expt1.core
   (:require [expt1.k2 :as k2]
              clojure.string
-             clojure.pprint)
+             clojure.pprint
+            [clj-http.client :as http])
   (:refer-clojure :exclude [distinct])
   (:import [rx Observable subscriptions.Subscriptions])
   )
@@ -19,16 +20,16 @@
          (println "----------------")
          x#)))
 
-;;;
 ;;;   ___                  _       ___  _
 ;;;  / __|___ _ _  ___ _ _(_)__   / _ \| |__ ___ ___ _ ___ _____ _ _
 ;;; | (_ / -_) ' \/ -_) '_| / _| | (_) | '_ (_-</ -_) '_\ V / -_) '_|
 ;;;  \___\___|_||_\___|_| |_\__|  \___/|_.__/__/\___|_|  \_/\___|_|
 
-;;; The current rx library has none of the co-monadic operators such
-;;; as "first" and "last". Let us make atomic, external collectors for
-;;; extracting items from an oseq (observable sequence) by mutating
-;;; side-effects (horrors!).
+
+;;; The current rx library has no co-monadic operators such as "first"
+;;; and "last". Let us make atomic, external collectors for extracting
+;;; items from an oseq (observable sequence) by mutating side-effects
+;;; (horrors!).
 
 (defn- subscribe-collectors [obl]
   (let [;; Keep a sequence of all values sent:
@@ -150,6 +151,7 @@
 ;;; a composition, but we can't (comp Observable/toObservable ...) since
 ;;; it's a Java method and does not implement Clojure IFn. We fix this
 ;;; by wrapping it in a function:
+
 
 (defn from-seq [s] (Observable/toObservable s))
 
@@ -316,38 +318,74 @@
 ;;;                                             |_|
 
 (defn flip [f2] (fn [x y] (f2 y x)))
-(-> (k2/customObservableBlocking)
+
+(defn customObservableBlocking []
+  "A custom Observable whose 'subscribe' method does not return until
+   the observable completes, that is, a 'blocking' observable.
+
+  returns Observable<String>"
+  (Observable/create
+   (fn [observer]
+     (doseq [x (range 50)]
+       (-> observer
+           (.onNext (str "value_" x))))
+     ;; After sending all values, complete the sequence:
+     (-> observer .onCompleted)
+     ;; Return a NoOpSubsription, since this observable does not
+     ;; return from its subscription call until it sends all messages
+     ;; and completes. Thus, the thread receiving the "subscription"
+     ;; can't unsubscribe until the observable complete. We say that
+     ;; this observable "blocks."
+     (Subscriptions/empty))))
+
+(-> (customObservableBlocking)
     (.map (partial (flip clojure.string/split) #"_"))
     (.map (fn [[a b]] [a (Integer/parseInt b)]))
     (.filter (fn [[a b]] (= 0 (mod b 7))))
     (subscribe-collectors))
 
-(-> (k2/customObservableNonBlocking)
-    #_(.map (partial (flip clojure.string/split) #"_"))
-    #_(.map (fn [[a b]] [a (Integer/parseInt b)]))
-    #_(.filter (fn [[a b]] (= 0 (mod b 7))))
+(defn customObservableNonBlocking []
+  "A custom Observable whose 'subscribe' method returns immediately
+   and whose other actions; that is, onNext, onCompleted, onError;
+   occur on another thread.
+
+  returns Observable<String>"
+  (Observable/create
+   (fn [observer]
+     (let [f (future
+               (doseq [x (range 50)]
+                 (-> observer (.onNext (str "anotherValue_" x))))
+               ;; After sending all values, complete the sequence:
+               (-> observer .onCompleted))]
+       ;; Return a subscription that cancels the future
+       (Subscriptions/create #(future-cancel f))))))
+
+(-> (customObservableNonBlocking)
+    (.map (partial (flip clojure.string/split) #"_"))
+    (.map (fn [[a b]] [a (Integer/parseInt b)]))
+    (.filter (fn [[a b]] (= 0 (mod b 7))))
     (subscribe-collectors))
 
-(defn -main
-  [& args]
+(defn asynchronousWikipediaArticleObservable [names]
+  "Fetch a list of Wikipedia articles asynchronously.
 
-  (->
-   (k2/fetchWikipediaArticleAsynchronously ["Tiger" "Elephant"])
-   (.subscribe #(println "--- Article ---\n" (subs (:body %) 0 125) "..."))
-   )
+   return Observable<String> of HTML"
+  (Observable/create
+   (fn [observer]
+     (let [f (future
+               (doseq [name names]
+                 (-> observer
+                     (.onNext (http/get
+                               (str "http://en.wikipedia.org/wiki/" name)))))
+               ;; After sending response to onNext, complete the
+               ;; sequence:
+               (-> observer .onCompleted))]
+       ;; A subscription that cancels the future if unsubscribed:
+       (Subscriptions/create #(future-cancel f))))))
 
-  (k2/simpleComposition)
+(-> (asynchronousWikipediaArticleObservable ["Tiger" "Elephant"])
 
-  (->
-   (k2/getVideoForUser 12345 78965)
-   (.subscribe
-    (fn [datum] (println "--- Object ---\n" datum))
-    (fn [exception] (println "--- Error ---\n" exception))
-    (fn [] (println "--- Completed ---\n"))))
+    (.subscribe  #(println "--- Article ---\n" (subs (:body %) 0 125) "..."))
+    )
 
-  (->
-   (k2/fetchWikipediaArticleAsynchronouslyWithErrorHandling ["Tiger" "NonExistentTitle" "Elephant"])
-   (.subscribe #(println "--- Article ---\n" (subs (:body %) 0 125) "...")
-               #(println "--- Error ---\n" (.getMessage %))
-               ))
-  )
+(+ 4 3)
