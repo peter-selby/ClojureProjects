@@ -6,6 +6,8 @@
   (:require [expt1.k2 :as k2]
              clojure.string
              clojure.pprint
+             clojure.zip
+             clojure.xml
             [clj-http.client :as http])
   (:refer-clojure :exclude [distinct])
   (:import [rx Observable subscriptions.Subscriptions])
@@ -332,7 +334,7 @@
    (fn [observer]
      (doseq [x (range 50)]
        (-> observer
-           (.onNext (str "value_" x))))
+           (.onNext (str "SynchronousValue_" x))))
      ;; After sending all values, complete the sequence:
      (-> observer .onCompleted)
      ;; Return a NoOpSubsription, since this observable does not
@@ -358,10 +360,10 @@
    (fn [observer]
      (let [f (future
                (doseq [x (range 50)]
-                 (-> observer (.onNext (str "anotherValue_" x))))
+                 (-> observer (.onNext (str "AsynchValue_" x))))
                ;; After sending all values, complete the sequence:
                (-> observer .onCompleted))]
-       ;; Return a subscription that cancels the future
+       ;; Return a subscription that cancels the future:
        (Subscriptions/create #(future-cancel f))))))
 
 (-> (customObservableNonBlocking)
@@ -387,29 +389,21 @@
        ;; A subscription that cancels the future if unsubscribed:
        (Subscriptions/create #(future-cancel f))))))
 
-#_(-> (asynchronousWikipediaArticleObservable ["Tiger" "Elephant"])
-    (.subscribe #(println "--- Article ---\n" (subs (:body %) 0 90) "..."))
-    )
-
-#_(-> (asynchronousWikipediaArticleObservable ["Tiger" "Elephant"])
-    (subscribe-collectors)
-    (nth 1)
-    )
+(defn zip-str [s]
+  (zip/xml-zip 
+   (xml/parse 
+    (java.io.ByteArrayInputStream. 
+     (.getBytes s)))))
 
 (->>
  ((subscribe-collectors
    (asynchronousWikipediaArticleObservable ["Atom" "Molecule"])
    5000)
    :onNext)
- (map :trace-redirects)
+ (map :body)
+ (map #(subs % 16 (count %)))
+ (map zip-str)
  )
 
-#_(let [collectors (subscribe-collectors (asynchronousWikipediaArticleObservable ["Tiger" "Elephant"]))]
-  (map
-   (fn [collector]
-     (into
-      collector
-      {:body (subs (:body collector) 0 90)}))
-   collectors))
 
 (+ 4 3)
