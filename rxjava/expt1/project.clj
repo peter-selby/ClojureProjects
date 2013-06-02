@@ -7,5 +7,6 @@
                  [clj-http                          "0.7.1"]
                  ;; [org.slf4j/log4j-over-slf4j        "1.6.6"]
                  [org.slf4j/slf4j-log4j12           "1.7.5"]
+                 [enlive                            "1.1.1"]
                  [com.netflix.rxjava/rxjava-clojure "0.9.0"]]
   :main expt1.core)
