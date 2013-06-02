@@ -31,8 +31,12 @@
 ;;; items from an oseq (observable sequence) by mutating side-effects
 ;;; (horrors!).
 
-(defn- subscribe-collectors [obl]
-  (let [;; Keep a sequence of all values sent:
+(defn- subscribe-collectors [obl & optional-wait-time]
+  (let [wait-time
+        (if optional-wait-time
+          (first optional-wait-time)
+          1000)
+        ;; Keep a sequence of all values sent:
         onNextCollector      (agent    [])
         ;; Only need one value if the observable errors out:
         onErrorCollector     (atom    nil)
@@ -59,10 +63,10 @@
                 ;; return too quickly, allowing this onCompleted await
                 ;; to return, losing some messages. This code depends
                 ;; on order-of-evaluation assumptions in the map.
-                :onCompleted (deref onCompletedCollector 1000 false)
+                :onCompleted (deref onCompletedCollector wait-time false)
                 ;; Wait for everything that has been sent to the agent
                 ;; to drain (presumably internal message queues):
-                :onNext      (do (await-for 1000 onNextCollector)
+                :onNext      (do (await-for wait-time onNextCollector)
                                  ;; Then produce the results:
                                  @onNextCollector)
                 ;; If we ever saw an error, here it is:
@@ -383,9 +387,29 @@
        ;; A subscription that cancels the future if unsubscribed:
        (Subscriptions/create #(future-cancel f))))))
 
-(-> (asynchronousWikipediaArticleObservable ["Tiger" "Elephant"])
-
-    (.subscribe  #(println "--- Article ---\n" (subs (:body %) 0 125) "..."))
+#_(-> (asynchronousWikipediaArticleObservable ["Tiger" "Elephant"])
+    (.subscribe #(println "--- Article ---\n" (subs (:body %) 0 90) "..."))
     )
+
+#_(-> (asynchronousWikipediaArticleObservable ["Tiger" "Elephant"])
+    (subscribe-collectors)
+    (nth 1)
+    )
+
+(->>
+ ((subscribe-collectors
+   (asynchronousWikipediaArticleObservable ["Atom" "Molecule"])
+   5000)
+   :onNext)
+ (map :trace-redirects)
+ )
+
+#_(let [collectors (subscribe-collectors (asynchronousWikipediaArticleObservable ["Tiger" "Elephant"]))]
+  (map
+   (fn [collector]
+     (into
+      collector
+      {:body (subs (:body collector) 0 90)}))
+   collectors))
 
 (+ 4 3)
