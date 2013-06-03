@@ -411,29 +411,29 @@
 ;;; /_/ \_\/__/\_, |_||_\__|_||_|   \_/\_/\___|_.__/ |_| \__,_\__, \___/__/
 ;;;            |__/                                           |___/        
 
-(defn asynchronousWikipediaArticleObservable [names]
-  "Fetch a list of Wikipedia articles asynchronously.
+(defn asynchWikipediaArticle [names]
+  "Fetch a list of Wikipedia articles asynchronously
+   with proper error handling.
 
    return Observable<String> of HTML"
   (Observable/create
    (fn [observer]
      (let [f (future
-               (doseq [name names]
-                 (-> observer
-                     ;; Use "enlive" to parse & scrape html:
-                     (.onNext
-                      (html/html-resource
-                       (java.net.URL.
-                        (str "http://en.wikipedia.org/wiki/" name))))
-                     ;; Netflix originally used strings, but...
-                     #_(.onNext (http/get
-                               (str "http://en.wikipedia.org/wiki/" name)))
-                     )
-                 )
-               ;; After sending response to onNext, complete the
-               ;; sequence:
+               (try
+                 (doseq [name names]
+                   (-> observer
+                       ;; Use "enlive" to parse & scrape html:
+                       (.onNext
+                        (html/html-resource
+                         (java.net.URL.
+                          (str "http://en.wikipedia.org/wiki/" name))))
+                       ;; Netflix originally used strings, but...
+                       ))
+                 ;; (catch Exception e (prn "exception")))
+                 (catch Exception e (-> observer (.onError e))))
+               ;; after sending response to onNext we complete the sequence
                (-> observer .onCompleted))]
-       ;; A subscription that cancels the future if unsubscribed:
+       ;; a subscription that cancels the future if unsubscribed
        (Subscriptions/create #(future-cancel f))))))
 
 ;;; There is something in the "Atom" web page that xml/parse does not
@@ -447,10 +447,123 @@
 
 (->>
  ((subscribe-collectors
-   (asynchronousWikipediaArticleObservable ["Atom" "Molecule"])
+   (asynchWikipediaArticle ["Lion" "NonExistentTitle" "Bear"])
    5000)
   :onNext)
  (map #(html/select % [:title]))
  (pdump))
 
-(pdump (+ 4 3))
+;;;  _  _     _    __ _ _      __   ___    _            
+;;; | \| |___| |_ / _| (_)_ __ \ \ / (_)__| |___ ___ ___
+;;; | .` / -_)  _|  _| | \ \ /  \ V /| / _` / -_) _ (_-<
+;;; |_|\_\___|\__|_| |_|_/_\_\   \_/ |_\__,_\___\___/__/
+                                                    
+(defn getUser [userId]
+  "Asynchronously fetch user data
+
+  return Observable<Map>"
+  (Observable/create
+   (fn [observer]
+     (let [f (future
+               (try
+                 ;; simulate fetching user data via network service call with latency
+                 (Thread/sleep 60)
+                 (-> observer
+                     (.onNext {:user-id userId
+                               :name "Sam Harris"
+                               :preferred-language (if (= 0 (rand-int 2)) "en-us" "es-us") }))
+                 (-> observer .onCompleted)
+                 (catch Exception e (-> observer (.onError e))))) ]
+       ;; a subscription that cancels the future if unsubscribed
+       (Subscriptions/create #(future-cancel f))))))
+
+
+(defn getVideoBookmark [userId, videoId]
+  "Asynchronously fetch bookmark for video
+
+  return Observable<Integer>"
+  (Observable/create
+   (fn [observer]
+     (let [f (future
+               (try
+                 ;; simulate fetching user data via network service call with latency
+                 (Thread/sleep 20)
+                 (-> observer
+                     (.onNext {:video-id videoId
+                               ;; 50/50 chance of giving back position 0 or 0-2500
+                               :position (if (= 0 (rand-int 2)) 0 (rand-int 2500))}))
+                 (-> observer .onCompleted)
+                 (catch Exception e (-> observer (.onError e)))))]
+       ;; a subscription that cancels the future if unsubscribed
+       (Subscriptions/create #(future-cancel f))))))
+
+(defn getVideoMetadata [videoId, preferredLanguage]
+  "Asynchronously fetch movie metadata for a given language
+
+  return Observable<Map>"
+  (Observable/create
+   (fn [observer]
+     (let [f (future
+               (try
+                 ;; simulate fetching video data via network service call with latency
+                 (Thread/sleep 50)
+                 ;; contrived metadata for en-us or es-us
+                 (if (= "en-us" preferredLanguage)
+                   (-> observer (.onNext {:video-id videoId
+                                          :title "House of Cards: Episode 1"
+                                          :director "David Fincher"
+                                          :duration 3365})))
+                 (if (= "es-us" preferredLanguage)
+                   (-> observer (.onNext {:video-id videoId
+                                          :title "Cámara de Tarjetas: Episodio 1"
+                                          :director "David Fincher"
+                                          :duration 3365})))
+                 (-> observer .onCompleted)
+                 (catch Exception e (-> observer (.onError e))))) ]
+       ;; a subscription that cancels the future if unsubscribed
+       (Subscriptions/create #(future-cancel f))))))
+
+
+(defn getVideoForUser [userId videoId]
+  "Get video metadata for a given userId
+  - video metadata
+  - video bookmark position
+  - user data
+  return Observable<Map>"
+  (let [user-observable
+        (-> (getUser userId)
+            (.map (fn [user] {:user-name (:name user)
+                             :language (:preferred-language user)})))
+        bookmark-observable
+        (-> (getVideoBookmark userId videoId)
+            (.map (fn [bookmark] {:viewed-position (:position bookmark)})))
+
+        ;; getVideoMetadata requires :language from user-observable so nest inside map function
+        video-metadata-observable
+        (-> user-observable
+            (.mapMany
+             ;; fetch metadata after a response from user-observable is received
+             (fn [user-map]
+               (getVideoMetadata videoId (:language user-map)))))]
+    ;; now combine 3 async sequences using zip
+    (-> (Observable/zip
+         bookmark-observable video-metadata-observable user-observable
+         (fn [bookmark-map metadata-map user-map]
+           {:bookmark-map bookmark-map
+            :metadata-map metadata-map
+            :user-map user-map}))
+        ;; and transform into a single response object
+        (.map (fn [data]
+                {:video-id       videoId
+                 :video-metadata (:metadata-map data)
+                 :user-id        userId
+                 :language       (:language (:user-map data))
+                 :bookmark       (:viewed-position (:bookmark-map data)) })))))
+
+(-> ( getVideoForUser 12345 78965)
+    (subscribe-collectors)
+    (pdump)
+    )
+
+
+(pdump (* 6 (+ 4 3)))
