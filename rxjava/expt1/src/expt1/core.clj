@@ -493,18 +493,14 @@
   "Asynchronously fetch movie metadata for a given language. Return Observable<Map>"
   (simulatedSlowMapObjectObservable
    (fn []
-     (if (= "en-us" preferredLanguage)
-       {:video-id videoId
-        :title "House of Cards: Episode 1"
-        :director "David Fincher"
-        :duration 3365})
-     (if (= "es-us" preferredLanguage)
-       {:video-id videoId
-        :title "Cámara de Tarjetas: Episodio 1"
-        :director "David Fincher"
-        :duration 3365}))
+     {:video-id videoId
+      :title (case preferredLanguage
+               "en-us" "House of Cards: Episode 1"
+               "es-us" "Cámara de Tarjetas: Episodio 1"
+               "no-title")
+      :director "David Fincher"
+      :duration 3365})
    50))
-
 
 (defn getVideoForUser [userId videoId]
   "Get video metadata for a given userId
@@ -537,10 +533,12 @@
         ;; and transform into a single response object
         (.map (fn [data]
                 {:video-id       videoId
-                 :video-metadata (:metadata-map data)
                  :user-id        userId
-                 :language       (:language (:user-map data))
-                 :bookmark       (:viewed-position (:bookmark-map data)) })))))
+                 :video-metadata (:metadata-map data)
+                 :language       (:language
+                                  (:user-map data))
+                 :bookmark       (:viewed-position
+                                  (:bookmark-map data))})))))
 
 (-> ( getVideoForUser 12345 78965)
     (subscribe-collectors)
