@@ -34,11 +34,10 @@
 ;;; items from an oseq (observable sequence) by mutating side-effects
 ;;; (horrors!).
 
+(defn- or-default [val default] (if val (first val) default))
+
 (defn- subscribe-collectors [obl & optional-wait-time]
-  (let [wait-time
-        (if optional-wait-time
-          (first optional-wait-time)
-          1000)
+  (let [wait-time (or-default optional-wait-time 1000)
         ;; Keep a sequence of all values sent:
         onNextCollector      (agent    [])
         ;; Only need one value if the observable errors out:
@@ -458,70 +457,53 @@
 ;;; | .` / -_)  _|  _| | \ \ /  \ V /| / _` / -_) _ (_-<
 ;;; |_|\_\___|\__|_| |_|_/_\_\   \_/ |_\__,_\___\___/__/
                                                     
+(defn simulatedSlowMapObjectObservable [nullaryFnToMapObject & optionalDelayMSec]
+  (let [delay (or-default optionalDelayMSec 50)]
+    (Observable/create
+     (fn [observer]
+       (let [f (future
+                 (try
+                   ;; simulate fetching user data via network service call with latency
+                   (Thread/sleep delay)
+                   (-> observer (.onNext (nullaryFnToMapObject)))
+                   (-> observer .onCompleted)
+                   (catch Exception e (-> observer (.onError e))))) ]
+         ;; a subscription that cancels the future if unsubscribed
+         (Subscriptions/create #(future-cancel f)))))))
+
 (defn getUser [userId]
-  "Asynchronously fetch user data
-
-  return Observable<Map>"
-  (Observable/create
-   (fn [observer]
-     (let [f (future
-               (try
-                 ;; simulate fetching user data via network service call with latency
-                 (Thread/sleep 60)
-                 (-> observer
-                     (.onNext {:user-id userId
-                               :name "Sam Harris"
-                               :preferred-language (if (= 0 (rand-int 2)) "en-us" "es-us") }))
-                 (-> observer .onCompleted)
-                 (catch Exception e (-> observer (.onError e))))) ]
-       ;; a subscription that cancels the future if unsubscribed
-       (Subscriptions/create #(future-cancel f))))))
-
+  "Asynchronously fetch user data. Returns Observable<Map>"
+  (simulatedSlowMapObjectObservable
+   (fn []
+     {:user-id userId
+      :name "Sam Harris"
+      :preferred-language (if (= 0 (rand-int 2)) "en-us" "es-us") })
+   60))
 
 (defn getVideoBookmark [userId, videoId]
-  "Asynchronously fetch bookmark for video
-
-  return Observable<Integer>"
-  (Observable/create
-   (fn [observer]
-     (let [f (future
-               (try
-                 ;; simulate fetching user data via network service call with latency
-                 (Thread/sleep 20)
-                 (-> observer
-                     (.onNext {:video-id videoId
-                               ;; 50/50 chance of giving back position 0 or 0-2500
-                               :position (if (= 0 (rand-int 2)) 0 (rand-int 2500))}))
-                 (-> observer .onCompleted)
-                 (catch Exception e (-> observer (.onError e)))))]
-       ;; a subscription that cancels the future if unsubscribed
-       (Subscriptions/create #(future-cancel f))))))
+  "Asynchronously fetch bookmark for video. Returns Observable<Integer>"
+  (simulatedSlowMapObjectObservable
+   (fn []
+     {:video-id videoId
+      ;; 50/50 chance of giving back position 0 or 0-2500
+      :position (if (= 0 (rand-int 2)) 0 (rand-int 2500))})
+   20))
 
 (defn getVideoMetadata [videoId, preferredLanguage]
-  "Asynchronously fetch movie metadata for a given language
-
-  return Observable<Map>"
-  (Observable/create
-   (fn [observer]
-     (let [f (future
-               (try
-                 ;; simulate fetching video data via network service call with latency
-                 (Thread/sleep 50)
-                 ;; contrived metadata for en-us or es-us
-                 (if (= "en-us" preferredLanguage)
-                   (-> observer (.onNext {:video-id videoId
-                                          :title "House of Cards: Episode 1"
-                                          :director "David Fincher"
-                                          :duration 3365})))
-                 (if (= "es-us" preferredLanguage)
-                   (-> observer (.onNext {:video-id videoId
-                                          :title "Cámara de Tarjetas: Episodio 1"
-                                          :director "David Fincher"
-                                          :duration 3365})))
-                 (-> observer .onCompleted)
-                 (catch Exception e (-> observer (.onError e))))) ]
-       ;; a subscription that cancels the future if unsubscribed
-       (Subscriptions/create #(future-cancel f))))))
+  "Asynchronously fetch movie metadata for a given language. Return Observable<Map>"
+  (simulatedSlowMapObjectObservable
+   (fn []
+     (if (= "en-us" preferredLanguage)
+       {:video-id videoId
+        :title "House of Cards: Episode 1"
+        :director "David Fincher"
+        :duration 3365})
+     (if (= "es-us" preferredLanguage)
+       {:video-id videoId
+        :title "Cámara de Tarjetas: Episodio 1"
+        :director "David Fincher"
+        :duration 3365}))
+   50))
 
 
 (defn getVideoForUser [userId videoId]
@@ -529,7 +511,7 @@
   - video metadata
   - video bookmark position
   - user data
-  return Observable<Map>"
+  Returns Observable<Map>"
   (let [user-observable
         (-> (getUser userId)
             (.map (fn [user] {:user-name (:name user)
