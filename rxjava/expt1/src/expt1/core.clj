@@ -26,7 +26,7 @@
 ;;;   ___                  _       ___  _
 ;;;  / __|___ _ _  ___ _ _(_)__   / _ \| |__ ___ ___ _ ___ _____ _ _
 ;;; | (_ / -_) ' \/ -_) '_| / _| | (_) | '_ (_-</ -_) '_\ V / -_) '_|
-;;;  \___\___|_||_\___|_| |_\__|  \___/|_.__/__/\___|_|  \_/\___|_|
+;;;  \__/\___|_||_\___|_| |_\__|  \___/|_.__/__/\___|_|  \_/\___|_|
 ;;;
 
 ;;; The current rx library has no co-monadic operators such as "first"
@@ -109,13 +109,13 @@
 ;;;                            |___/
 
 
-;;; Now, let's transform each number x into a vector of numbers, adding
-;;; x to some familiar constants, then flattening the results exactly
-;;; one time. This is the way to grow a shorter sequence into a longer
-;;; one. Filters typically shorten sequences; maps leave sequences the
-;;; same length. All methods that lengthen sequences rely on mapMany,
-;;; which is called "SelectMany" in many Rx documents (.e.g.,
-;;; http://bit.ly/18Bot23).
+;;; Now, let's transform each number x into a vector of numbers,
+;;; adding x to some familiar constants, then flattening the results
+;;; exactly one time. This is a way to grow a shorter sequence into a
+;;; longer one. Filters typically shorten sequences; maps leave
+;;; sequences the same length. Most methods that lengthen sequences
+;;; rely on mapMany, which is called "SelectMany" in many Rx documents
+;;; (.e.g., http://bit.ly/18Bot23).
 
 (->
  (Observable/toObservable [1 2 3])
@@ -165,6 +165,8 @@
 
 (defn from-seq [s] (Observable/toObservable s))
 
+;;; Now we have a pretty function we can compose with string-explode:
+
 (->
  (from-seq ["one" "two" "three"])
  (.mapMany (comp from-seq string-explode))
@@ -178,10 +180,10 @@
 ;;; |_| \___|\__|\_,_|_| |_||_|
 
 
-;;; We notice that the monadic "return" is missing from "rxjava 0.9.0",
-;;; so we add it as follows. This is doing some junk-work -- puts the
-;;; item in a vector just so we can take it out again into an obl.
-;;; A native implementation would be preferable.
+;;; We notice that the monadic "return" is missing from "rxjava
+;;; 0.9.0", so we add it as follows. This does junk-work -- puts the
+;;; item in a vector just so we can take it out again into an obl. A
+;;; native implementation would be preferable.
 
 (defn return [item] (from-seq [item]))
 
