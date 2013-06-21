@@ -457,7 +457,10 @@
 
 (->>
  ((subscribe-collectors
-   (asynchWikipediaArticle ["Lion" "NonExistentTitle" "Bear"])
+   (asynchWikipediaArticle
+    [(rand-nth ["Atom" "Molecule" "Quark" "Boson" "Fermion"])
+     "NonExistentTitle"
+     (rand-nth ["Lion" "Tiger" "Bear" "Shark"])])
    5000)
   :onNext)
  (map #(html/select % [:title]))
@@ -564,10 +567,14 @@
 ;;; | __|_ _____ _ _ __(_)___ ___ ___
 ;;; | _|\ \ / -_) '_/ _| (_-</ -_|_-<
 ;;; |___/_\_\___|_| \__|_/__/\___/__/
-                                 
-;;; Exercise 5: Use map() to project an array of videos into an array
-;;; of {id,title} pairs
-;;; For each video, project a {id,title} pair.
+
+;;;    ____                 _           ____
+;;;   / __/_ _____ ________(_)__ ___   / __/
+;;;  / _/ \ \ / -_) __/ __/ (_-</ -_) /__ \ 
+;;; /___//_\_\\__/_/  \__/_/___/\__/ /____/ 
+                                        
+;;; Exercise 5: Use map() to project an array of videos into an array of
+;;; {id,title} pairs For each video, project a {id,title} pair.
 
 ;;; (in Clojure, iterpret "pair" to mean "a map with two elements")
 
@@ -575,10 +582,17 @@
   (-> (str "./src/expt1/" filename)
       slurp
       cdjson/read-str
-      pdump))
+      pdump
+      ))
 
 (-> (jslurp "Exercise_5.json")
-    from-seq
+    ;; Make all levels asynchronous (maximize fuggliness):
+    asynchronous-observable
+
+    ;; The following line is the one that should be compared / contrasted with
+    ;; JavaScript & Datapath -- the surrounding lines are just input & output.
+    ;; I do likewise with all the other exercises: surrounding the "meat" in
+    ;; the sandwich with blank lines.
 
     (.map (fn [vid] {:id (vid "id") :title (vid "title")}))
 
@@ -611,12 +625,18 @@
 ;;;   )
 ;;; )
 
-;;; Exercise 8: Chain filter and map to collect the ids of videos that have a rating of 5.0
+;;;    ____                 _           ___ 
+;;;   / __/_ _____ ________(_)__ ___   ( _ )
+;;;  / _/ \ \ / -_) __/ __/ (_-</ -_) / _  |
+;;; /___//_\_\\__/_/  \__/_/___/\__/  \___/ 
+                                        
+;;; Exercise 8: Chain filter and map to collect the ids of videos that have a
+;;; rating of 5.0
 
 ;;; Select all videos with a rating of 5.0 and project the id field.
 
 (-> (jslurp "Exercise_8.json")
-    from-seq
+    asynchronous-observable
 
     (.filter (fn [vid] (== (vid "rating") 5.0)))
     (.map (fn [vid]  (vid "id")))
@@ -648,35 +668,117 @@
 ;;;   )
 ;;; )
 
+;;;    ____                 _           ______
+;;;   / __/_ _____ ________(_)__ ___   <  <  /
+;;;  / _/ \ \ / -_) __/ __/ (_-</ -_)  / // / 
+;;; /___//_\_\\__/_/  \__/_/___/\__/  /_//_/  
+                                          
 ;;; Exercise 11: Use map() and mergeAll() to project and flatten the
 ;;; movieLists into an array of video ids
 
 ;;; Produce a flattened list of video ids from all movie lists.
 
-;;; Remark: "mergeAll" is not a standard operator and is not present
-;;; in rxjava. "mapMany" is the obvious solution in this context,
-;;; however, we might like to 'run' the nested observers
-;;; asynchronously in parallel and merge them, whereas "mapMany"
-;;; 'runs' them sequentially. We'll do the latter using operators
-;;; found here:
-;;;
+;;; Remark: No "mergeAll" in rxjava / Clojure; look up "merge" here:
 ;;; http://netflix.github.io/RxJava/javadoc/rx/Observable.html
 
-(let [xs (from-seq [1 2 3])
-      a  (-> xs (.take 1))
-      b  (-> xs (.skip 1) (.take 1))]
-  (-> (from-seq [a b])
-      (Observable/merge)
-      subscribe-collectors
-      pdump)
-  )
+(-> (jslurp "Exercise_11.json")
+    asynchronous-observable 
 
-#_(-> (jslurp "Exercise_11.json")
-    from-seq
+    (.map (fn [genre] (asynchronous-observable (genre "videos"))))
 
-    (.map (fn [vid]  (vid "videos")))
-    (.mapMany )
+    (Observable/merge)
+    (.map (fn [vid] (vid "id")))
 
     subscribe-collectors
-    pdump   
-    )
+    pdump)   
+
+;;; Javascript
+;;; 
+;;; return movieLists
+;;;   .map(
+;;;     function(x) {
+;;;       return x.videos;
+;;;     })
+;;;   .mergeAll()
+;;;   .map(
+;;;     function(x) {
+;;;       return x.id;
+;;;     });
+
+;;; Datapath
+;;; 
+;;; (. (.* (. (.* movieLists) "videos")) "id" id)
+
+;;;    ____                 _           _______
+;;;   / __/_ _____ ________(_)__ ___   <  / / /
+;;;  / _/ \ \ / -_) __/ __/ (_-</ -_)  / /_  _/
+;;; /___//_\_\\__/_/  \__/_/___/\__/  /_/ /_/  
+
+;;; Exercise 14: Use mapMany() to retrieve id, title, and 150x200 box art url
+;;; for every video.
+;;;
+;;; I changed the original slightly so that "Chamber" has no 150x200 box art
+;;; (to test the case where some input does not pass the filter) and so that
+;;; "Fracture" has two 150x200 boxarts (to test that they're not improperly
+;;; nested)
+
+(-> (jslurp "Exercise_14.json")
+    asynchronous-observable 
+
+    (.mapMany (fn [genres] (-> (genres "videos") asynchronous-observable)))
+    (.mapMany (fn [vid]    (-> (vid "boxarts")   asynchronous-observable
+                              (.filter (fn [art] (and (== 150 (art "width"))
+                                                     (== 200 (art "height")))))
+                              (.map (fn [art] ;; note the closure over "vid"
+                                      {:id    (vid "id")
+                                       :title (vid "title")
+                                       :url   (art "url")})))))
+
+    subscribe-collectors
+    pdump)   
+
+;;; 
+;;; Javascript
+;;; 
+;;; return movieLists
+;;;   .mapMany(function(m) { return m.videos })
+;;;   .mapMany(
+;;;     function(v) {
+;;;       return v
+;;;         .boxarts
+;;;         .filter(
+;;;           function(x) {
+;;;             return x.width === 150
+;;;               && x.height === 200;
+;;;           })
+;;;         .map(
+;;;           function(x) {
+;;;             return {
+;;;               id: v.id,
+;;;               title: v.title,
+;;;               boxart: x.url
+;;;             };
+;;;           });
+;;;     });
+;;; Datapath
+;;; 
+
+;;; Datapath avoids closure issues by instantiating all variables in a
+;;; "unification" style. Bravo!
+
+;;; (exist (v x)
+;;;   (and
+;;;     (.* (. (.* movieLists) "videos") v)
+;;;     (.* (. v "boxarts") x)
+;;;     (. x "width" 150)
+;;;     (. x "height" 200)
+;;;     (= result {
+;;;          id: (. v "id"),
+;;;          title: (. v "title"),
+;;;          boxart: (. x "url")
+;;;        }
+;;;     )
+;;;   )
+;;; )
+
+
