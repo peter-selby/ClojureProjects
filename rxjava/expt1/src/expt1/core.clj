@@ -583,8 +583,7 @@
     (.map (fn [vid] {:id (vid "id") :title (vid "title")}))
 
     subscribe-collectors
-    pdump   
-    )
+    pdump)
 
 ;;; in JavsScript, interpret "pair" to mean "an object with two
 ;;; properties"
@@ -628,8 +627,7 @@
     (.map (fn [vid]  (vid "id")))
 
     subscribe-collectors
-    pdump   
-    )
+    pdump)
 
 ;;;  Javascript
 ;;; 
@@ -712,6 +710,7 @@
     asynchronous-observable 
 
     (.mapMany (fn [genres] (-> (genres "videos") asynchronous-observable)))
+
     (.mapMany (fn [vid]    (-> (vid "boxarts")   asynchronous-observable
                               (.filter (fn [art] (and (== 150 (art "width"))
                                                      (== 200 (art "height")))))
@@ -775,6 +774,34 @@
 ;;; Exercise 24: Retrieve each video's id, title, middle interesting moment
 ;;; time, and smallest box art url.
 
+(-> (jslurp "Exercise_24.json")
+    asynchronous-observable
+
+    (.mapMany (fn [genre] (-> (genre "videos") asynchronous-observable)))
+    (.mapMany (fn [vid]
+                (let [arts (-> (vid "boxarts")
+                               asynchronous-observable
+                               (.reduce (fn [c p]
+                                          (if (< (* (c "height") (c "width"))
+                                                 (* (p "height") (p "width")))
+                                            c p))))
+                      moments (-> (vid "interestingMoments")
+                                  asynchronous-observable
+                                  (.filter (fn [moment] (= (moment "type") "Middle"))))
+                      ]
+                  (Observable/zip
+                   arts
+                   moments
+                   (fn [art moment]
+                     {:id    (vid    "id")
+                      :title (vid    "title")
+                      :time  (moment "time")
+                      :url   (art    "url")}
+                     )))
+                ))
+
+    subscribe-collectors
+    pdump)
 
 ;;; Javascript
 ;;; 
