@@ -98,20 +98,18 @@
 ;;; numbers and turn them into oseq. This illustrates "take", a method
 ;;; that often shortens sequences.
 
-(->
- (Observable/toObservable [1 2 3])
- (.take 2)
- subscribe-collectors
- pdump
- )
+(-> (Observable/toObservable [1 2 3])
+    (.take 2)
+    subscribe-collectors
+    pdump
+    )
 
-(->
- (Observable/toObservable [1 2 3 4 5])
- (.filter (fn [n] (= 0 (mod n 2))))
- (.take 1)
- subscribe-collectors
- pdump
- )
+(-> (Observable/toObservable [1 2 3 4 5])
+    (.filter (fn [n] (= 0 (mod n 2))))
+    (.take 1)
+    subscribe-collectors
+    pdump
+    )
 
 ;;;   ___                _
 ;;;  / __|_ _ _____ __ _(_)_ _  __ _
@@ -128,23 +126,21 @@
 ;;; rely on mapMany, which is called "SelectMany" in many Rx documents
 ;;; (.e.g., http://bit.ly/18Bot23).
 
-(->
- (Observable/toObservable [1 2 3])
- (.take 2)
- (.mapMany
-  #(Observable/toObservable (map (partial + %) [42 43 44])))
- subscribe-collectors
- pdump
- )
+(-> (Observable/toObservable [1 2 3])
+    (.take 2)
+    (.mapMany
+     #(Observable/toObservable (map (partial + %) [42 43 44])))
+    subscribe-collectors
+    pdump
+    )
 
 ;;; Let's operate on strings.
 
-(->
- (Observable/toObservable ["one" "two" "three"])
- (.take 2)
- subscribe-collectors
- pdump
- )
+(-> (Observable/toObservable ["one" "two" "three"])
+    (.take 2)
+    subscribe-collectors
+    pdump
+    )
 
 ;;; "seq" explodes strings into lazy sequences of characters:
 
@@ -154,12 +150,11 @@
 
 (def string-explode seq)
 
-(->
- (Observable/toObservable ["one" "two" "three"])
- (.mapMany #(Observable/toObservable (string-explode %)))
- subscribe-collectors
- pdump
- )
+(-> (Observable/toObservable ["one" "two" "three"])
+    (.mapMany #(Observable/toObservable (string-explode %)))
+    subscribe-collectors
+    pdump
+    )
 
 ;;;   __
 ;;;  / _|_ _ ___ _ __ ___ ___ ___ __ _
@@ -178,12 +173,11 @@
 
 ;;; Now we have a pretty function we can compose with string-explode:
 
-(->
- (from-seq ["one" "two" "three"])
- (.mapMany (comp from-seq string-explode))
- subscribe-collectors
- pdump
- )
+(-> (from-seq ["one" "two" "three"])
+    (.mapMany (comp from-seq string-explode))
+    subscribe-collectors
+    pdump
+    )
 
 ;;;          _
 ;;;  _ _ ___| |_ _  _ _ _ _ _
@@ -198,13 +192,12 @@
 
 (defn return [item] (from-seq [item]))
 
-(->
- (from-seq ["one" "two" "three"])
- (.mapMany (comp from-seq string-explode))
- (.mapMany return)
- subscribe-collectors
- pdump
- )
+(-> (from-seq ["one" "two" "three"])
+    (.mapMany (comp from-seq string-explode))
+    (.mapMany return)
+    subscribe-collectors
+    pdump
+    )
 
 ;;;     _ _    _   _         _
 ;;;  __| (_)__| |_(_)_ _  __| |_
@@ -216,22 +209,21 @@
 ;;; "distinctUntilChanged", but RxJava 0.9.0 doesn't seem to
 ;;; have them yet. We can fake them as follows:
 
-(->
- (Observable/toObservable ["one" "two" "three"])
- (.mapMany (comp from-seq string-explode))
+(-> (Observable/toObservable ["one" "two" "three"])
+    (.mapMany (comp from-seq string-explode))
 
- ;; The following two effect an implementation of "distinct".
- (.reduce #{} conj)
- ;; We now have a singleton obl containing a set of unique characters.
- ;; To promote this back into an obl of chars, we do:
- (.mapMany from-seq)
- ;; This is ok because "distinct" simply MUST consume the entire oseq
- ;; before producing its values. The operator "distinct" simply won't
- ;; work on a non-finite oseq.
+    ;; The following two effect an implementation of "distinct".
+    (.reduce #{} conj)
+    ;; We now have a singleton obl containing a set of unique characters.
+    ;; To promote this back into an obl of chars, we do:
+    (.mapMany from-seq)
+    ;; This is ok because "distinct" simply MUST consume the entire oseq
+    ;; before producing its values. The operator "distinct" simply won't
+    ;; work on a non-finite oseq.
 
- subscribe-collectors
- pdump
- )
+    subscribe-collectors
+    pdump
+    )
 
 ;;; Package and test.
 
@@ -240,13 +232,12 @@
       (.reduce #{} conj)
       (.mapMany from-seq)))
 
-(->
- (Observable/toObservable ["one" "two" "three"])
- (.mapMany (comp from-seq string-explode))
- distinct
- subscribe-collectors
- pdump
- )
+(-> (Observable/toObservable ["one" "two" "three"])
+    (.mapMany (comp from-seq string-explode))
+    distinct
+    subscribe-collectors
+    pdump
+    )
 
 ;;; Notice that distinct is "unstable" in the sense that it reorders its
 ;;; input. TODO: a stable implementation.
@@ -267,23 +258,22 @@
 ;;; distinct-until-changed: we only need to remember one back. Still, to make
 ;;; the point:
 
-(->
- (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
- (.mapMany (comp from-seq string-explode))
+(-> (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
+    (.mapMany (comp from-seq string-explode))
 
- ;; The following two effect "distinctUntilChanged".
- (.reduce [] (fn [acc x]
-               (let [l (last acc)]
-                 (if (and l (= x l)) ; accounts for legit nils
-                   acc
-                   (conj acc x)))))
- ;; We now have a singleton obl containing representatives of runs of non-
- ;; distinct characters. Slurp it back into the monad:
- (.mapMany from-seq)
+    ;; The following two effect "distinctUntilChanged".
+    (.reduce [] (fn [acc x]
+                  (let [l (last acc)]
+                    (if (and l (= x l)) ; accounts for legit nils
+                      acc
+                      (conj acc x)))))
+    ;; We now have a singleton obl containing representatives of runs of non-
+    ;; distinct characters. Slurp it back into the monad:
+    (.mapMany from-seq)
 
- subscribe-collectors
- pdump
- )
+    subscribe-collectors
+    pdump
+    )
 
 ;;; Better is to keep a mutable buffer of length one. It could be an atom if
 ;;; we had the opposite of "compare-and-set!"; an atomic primitive that sets
@@ -294,10 +284,8 @@
 ;;; must be defined outside the mapMany and the function that mapMany applies.
 ;;; However, this solution will not materialize the entire input sequence.
 
-(let [exploded (->
-                (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
-                (.mapMany (comp from-seq string-explode))
-                )
+(let [exploded (-> (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
+                   (.mapMany (comp from-seq string-explode)))
       ;; Must define this container outside the mapMany and the function
       ;; that napMany applies.
       last-container (ref [])]
@@ -327,23 +315,21 @@
                            (ref-set last-container [x])
                            (return x))))))))))
 
-(->
-  (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
-  (.mapMany (comp from-seq string-explode))
-  distinct-until-changed
-  subscribe-collectors
-  pdump
-)
+(->  (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
+     (.mapMany (comp from-seq string-explode))
+     distinct-until-changed
+     subscribe-collectors
+     pdump
+     )
 
 ;;; It's well-behaved on an empty input:
 
-(->
-  (Observable/toObservable [])
-  (.mapMany (comp from-seq string-explode))
-  distinct-until-changed
-  subscribe-collectors
-  pdump
-)
+(->  (Observable/toObservable [])
+     (.mapMany (comp from-seq string-explode))
+     distinct-until-changed
+     subscribe-collectors
+     pdump
+     )
 
 ;;;  ___              _                             
 ;;; / __|_  _ _ _  __| |_  _ _ ___ _ _  ___ _  _ ___
@@ -781,4 +767,72 @@
 ;;;   )
 ;;; )
 
+;;;    ____                 _           ___ ____
+;;;   / __/_ _____ ________(_)__ ___   |_  / / /
+;;;  / _/ \ \ / -_) __/ __/ (_-</ -_) / __/_  _/
+;;; /___//_\_\\__/_/  \__/_/___/\__/ /____//_/  
+                                            
+;;; Exercise 24: Retrieve each video's id, title, middle interesting moment
+;;; time, and smallest box art url.
+
+
+;;; Javascript
+;;; 
+;;; return movieLists
+;;;   .mapMany(
+;;;     function(movieList) {
+;;;       return movieList.videos;
+;;;     })
+;;;   .mapMany(
+;;;     function(video) {
+;;;       return Array.zip(
+;;;         video
+;;;           .boxarts
+;;;           .reduce(
+;;;             function(p, c) {
+;;;               return
+;;;                 c.width * c.height <
+;;;                 p.width * p.height ? c : p;
+;;;             }),
+;;;         video
+;;;           .interestingMoments
+;;;           .filter(
+;;;             function(m) {
+;;;               return m.type === "Middle";
+;;;             }),
+;;;         function(b,m) {
+;;;           return {
+;;;             id: video.id,
+;;;             title: video.title,
+;;;             time: m.time,
+;;;             url: b.url
+;;;           };
+;;;         });
+;;;     });
+
+;;; Datapath
+;;; 
+;;; (exist (video boxart moment)
+;;;   (and
+;;;     (.* (. (.* movieLists) "videos") video)
+;;;     (min
+;;;       (size boxart)
+;;;       (and
+;;;         (.* (. video "boxarts") boxart)
+;;;         (*
+;;;           (. boxart "width")
+;;;           (. boxart "height")
+;;;           size))
+;;;       boxart)
+;;;     (.* (. video "interestingMoments") moment)
+;;;     (. moment "type" "Middle")
+;;;     (= result
+;;;        {
+;;;          id: (. video "id"),
+;;;          title: (. video "title"),
+;;;          url: (. boxart "url"),
+;;;          time: (. moment "time")
+;;;        })
+;;;   )
+;;; )
 
