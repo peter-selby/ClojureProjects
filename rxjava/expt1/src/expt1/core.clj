@@ -1,6 +1,13 @@
 ;;; Run this file by going to the project directory (the directory
 ;;; with 'project.clj' in it) and saying 'lein repl'.
 
+;;; If you're using emacs with nrepl (see
+;;; http://clojure-doc.org/articles/tutorials/emacs.html for setup
+;;; info), you can run this entire file by first "jacking in" (Ctrl-c,
+;;; Meta-j), then running the whole file (Ctrl-c, Ctrl-k). You can
+;;; also eval individual terms by placing the cursor at the end of a
+;;; term and doing Ctrl-c, Ctrl-e (for "evaluate").
+
 (ns expt1.core
   (:require [expt1.k2               :as k2     ]
             [clojure.zip            :as zip    ]
