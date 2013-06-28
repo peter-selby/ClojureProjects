@@ -2,11 +2,28 @@
 ;;; with 'project.clj' in it) and saying 'lein repl'.
 
 ;;; If you're using emacs with nrepl (see
-;;; http://clojure-doc.org/articles/tutorials/emacs.html for setup
-;;; info), you can run this entire file by first "jacking in" (Ctrl-c,
-;;; Meta-j), then running the whole file (Ctrl-c, Ctrl-k). You can
-;;; also eval individual terms by placing the cursor at the end of a
-;;; term and doing Ctrl-c, Ctrl-e (for "evaluate").
+;;; http://clojure-doc.org/articles/tutorials/emacs.html for setup info),
+;;; you can run this entire file by first "jacking in" (Ctrl-c, Meta-j),
+;;; then running the whole file (Ctrl-c, Ctrl-k). You can also eval
+;;; individual terms by placing the cursor at the end of a term and doing
+;;; Ctrl-c, Ctrl-e (for "evaluate"). You can access documentation for any
+;;; clojure primitive by putting the cursore (which emacs calls "point")
+;;; inside or behind the primitive and typing Ctrl-c, Ctrl-d. The help for
+;;; the rest of the nrepl mode can be found by typing Ctrl-h, m.
+
+;;; Probably the most important thing to learn is "Paredit." It takes most
+;;; of the pain out of parentheses and nesting. There is a lot of info about
+;;; it on the web, and the help is pretty good. The two biggies are
+;;; paredit-forward-slurp-sexp, whose help you can find by typing Ctrl-h, k,
+;;; Ctrl-Shift-) and paredit-splice-sexp (Ctrl-h, k, Meta-s). Take the time
+;;; to learn them. Slurp has three friends: paredit-forward-barf-sexp
+;;; (Ctrl-h, k, Ctrl-Shift-} ) and the backwards versions of slurp and barf.
+;;; They're next most important.
+
+;;; You can re-indent any Clojure code that gets deranged by putting point
+;;; at the beginning of the code and typing Ctrl-Alt-Q. You can move around
+;;; at the expression level by typing Ctrl-Alt-F (forward) and Ctrl-Alt-B
+;;; (backward). 
 
 (ns expt1.core
   (:require [expt1.k2               :as k2     ]
@@ -131,7 +148,8 @@
 ;;; longer one. Filters typically shorten sequences; maps leave
 ;;; sequences the same length. Most methods that lengthen sequences
 ;;; rely on mapMany, which is called "SelectMany" in many Rx documents
-;;; (.e.g., http://bit.ly/18Bot23).
+;;; (.e.g., http://bit.ly/18Bot23) and is similar to Clojure's "mapcat", up
+;;; to order of parameters.
 
 (-> (Observable/toObservable [1 2 3])
     (.take 2)
@@ -367,13 +385,49 @@
 (defn flip [f2] (fn [x y] (f2 y x)))
 
 (-> (synchronous-observable (range 50))
-    (.map #(str "SynchronousValue_" %))
-    (.map (partial (flip clojure.string/split) #"_"))
-    (.map (fn [[a b]] [a (Integer/parseInt b)]))
+    (.map    #(str "SynchronousValue_" %))
+    (.map    (partial (flip clojure.string/split) #"_"))
+    (.map    (fn [[a b]] [a (Integer/parseInt b)]))
     (.filter (fn [[a b]] (= 0 (mod b 7))))
     subscribe-collectors
     pdump
     )
+
+;;; Let's compare the use of rxjava's ".map" with Clojure's ordinary
+;;; "map". The biggest difference is that Rx's .map takes the collection in
+;;; the privileged first position. Such makes "fluent composition" with the
+;;; "->" macro automatic and brainless. Ditto rxjava/.filter and
+;;; core/filter: their argument lists are the flips of one another.
+
+;;; Consider the example above, and let's write a non-reactive version of
+;;; it. 
+
+(-> (range 50)
+    ((flip map)     #(str "NonReactiveValue_" %))
+    ((flip map)    (partial (flip clojure.string/split) #"_"))
+    ((flip map)    (fn [[a b]] [a (Integer/parseInt b)]))
+    ((flip filter) (fn [[a b]] (= 0 (mod b 7))))
+    pdump
+    )
+
+;;; The code above looks very similar to the reactive code-block prior to
+;;; it. Specifically, the function arguments are identical. The device used
+;;; to bring the collection arguments into first position is "flip". To make
+;;; the resemblance even more complete, we might do the following
+
+(let [-map    (flip map)
+      -filter (flip filter)]
+  (-> (range 50)
+      (-map    #(str "NonReactiveValue2.0_" %))
+      (-map    (partial (flip clojure.string/split) #"_"))
+      (-map    (fn [[a b]] [a (Integer/parseInt b)]))
+      (-filter (fn [[a b]] (= 0 (mod b 7))))
+      pdump
+      )
+  )
+
+;;; With these local definitions, "-map" and "-filter", the non-reactive
+;;; version looks just like the reactive version.
 
 ;;;    _                    _                             
 ;;;   /_\   ____  _ _ _  __| |_  _ _ ___ _ _  ___ _  _ ___
