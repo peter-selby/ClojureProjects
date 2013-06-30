@@ -34,6 +34,7 @@
             [clojure.data.json      :as cdjson ]
             clojure.string
             clojure.pprint
+            [clojure.reflect        :as r      ]
             )
   (:refer-clojure :exclude [distinct])
   (:import [rx Observable subscriptions.Subscriptions])
@@ -1072,3 +1073,19 @@
                       :onNext)}
          )))
   )
+
+;;;           __ _        _   _          
+;;;  _ _ ___ / _| |___ __| |_(_)___ _ _  
+;;; | '_/ -_)  _| / -_) _|  _| / _ \ ' \ 
+;;; |_| \___|_| |_\___\__|\__|_\___/_||_|
+                                     
+;;; The following is an example of how to use reflection to print the
+;;; current members of the Observable class.
+
+#_(into #{}
+        (map (comp #(% 1) first)
+             (sort-by
+              :name
+              (filter
+               :exception-types
+               (:members (r/reflect Observable))))))
