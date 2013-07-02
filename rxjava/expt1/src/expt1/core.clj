@@ -1082,10 +1082,10 @@
 ;;; The following is an example of how to use reflection to print the
 ;;; current members of the Observable class.
 
-#_(into #{}
-        (map (comp #(% 1) first)
-             (sort-by
-              :name
-              (filter
-               :exception-types
-               (:members (r/reflect Observable))))))
+(pdump (into #{}
+             (map (comp #(% 1) first)
+                  (sort-by
+                   :name
+                   (filter
+                    :exception-types
+                    (:members (r/reflect Observable)))))))
