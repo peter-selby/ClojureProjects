@@ -1,7 +1,11 @@
 (ns mini-kanren.core-test
-  (:require [clojure.test :refer :all]
-            [mini-kanren.core :refer :all]))
+  (:refer-clojure :exclude [==])
+  (:require [clojure.test :as test]
+            [mini-kanren.core :refer :all :as mk]
+            )
+  (:use [clojure.core.logic]))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+(test/deftest a-test
+  (test/is (= 1 1))
+  )
+
