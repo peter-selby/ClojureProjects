@@ -63,5 +63,12 @@
 
   (test/is (= '(true)
               (run* [q] (fresh [x] (== x q) (== true x)))))
+
+  (test/is (= '(false) (run* [q] (fresh [x] (== (= x q) q)))))
+  (test/is (= '(true)  (run* [q] (fresh [x] (== (= x x) q)))))
+  (test/is (= '(true)  (run* [q] (fresh [x] (== (= q q) q)))))
+
+  (test/is (= '(false) (run* [q] (let [x q] (fresh [q] (== x (= x q)))))))
+  (test/is (= '(_0)    (run* [q] (let [x q] (fresh [q] (== q (= x q)))))))
   )
 
