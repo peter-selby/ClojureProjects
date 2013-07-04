@@ -39,7 +39,29 @@
               (run* [r] (fresh [x y] (== (lcons x (lcons y ())) r)))))
   (test/is (= '((_0 _1 _0))
               (run* [r] (fresh [x y] (== (lcons x (lcons y (lcons x ()))) r)))))
+  ;; Variables are reified "late:" in the order in which they appear
+  ;; in "ouput-generating" forms when unifying against variables.
+  ;; Here, y gets reified first, then x. They're not reified in the
+  ;; order they appear in the 'fresh' declaration.
   (test/is (= '((_0 _1 _0))
               (run* [r] (fresh [x y] (== (lcons y (lcons x (lcons y ()))) r)))))
+
+  (test/is (= '(false)
+              (run* [r] (== false r) (== r false))))
+
+  (test/is (= '(true)
+              (run* [r] (let [x r] (== true r)))))
+
+  (test/is (= '(_0)
+              (run* [r] (fresh [x] (== x r)))))
+
+  (test/is (= '(true)
+              (run* [r] (fresh [x] (== true x) (== x r)))))
+
+  (test/is (= '(true)
+              (run* [q] (fresh [x] (== x q) (== true q)))))
+
+  (test/is (= '(true)
+              (run* [q] (fresh [x] (== x q) (== true x)))))
   )
 
