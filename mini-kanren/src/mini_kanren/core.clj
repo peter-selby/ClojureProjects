@@ -70,5 +70,7 @@
 
   (test/is (= '(false) (run* [q] (let [x q] (fresh [q] (== x (= x q)))))))
   (test/is (= '(_0)    (run* [q] (let [x q] (fresh [q] (== q (= x q)))))))
+  
+  (test/is (= 2 (cond false 1 true 2)))
   )
 
