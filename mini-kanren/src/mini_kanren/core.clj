@@ -21,6 +21,11 @@
   (alter-var-root #'*read-eval* (constantly false))
   (println "Hello, World!"))
 
+(defn teacup [x] (conde
+                  ((== 'tea x) s#)
+                  ((== 'cup x) s#)
+                  (s#          u#)))
+
 (test/deftest foo-test
   (test/is (= '(true)  (run* [q] (== q true))))
   (test/is (= '(true)  (run* [q] s# (== true q))))
@@ -72,5 +77,54 @@
   (test/is (= '(_0)    (run* [q] (let [x q] (fresh [q] (== q (= x q)))))))
   
   (test/is (= 2 (cond false 1 true 2)))
+
+  (test/is (= '(olive oil)
+              (run* [q] (conde
+                         ((== 'olive q) s#)
+                         ((== 'oil   q) s#)
+                         (s#            u#)))))
+
+  (test/is (= '(olive)
+              (run 1 [q] (conde
+                          ((== 'olive q) s#)
+                          ((== 'oil   q) s#)
+                          (s#            u#)))))
+  
+  (test/is (= '((split pea))
+              (run* [r]
+                    (fresh [x y]
+                           (== 'split x)
+                           (== 'pea   y)
+                           (== (lcons x (lcons y ())) r)))))
+
+  (test/is (= '((split pea) (navy bean))
+              (run* [r]
+                    (fresh [x y]
+                           (conde
+                            ((== 'split x) (== 'pea   y))
+                            ((== 'navy  x) (== 'bean  y))
+                            (s#            u#))
+                           (== (lcons x (lcons y ())) r)))))
+  
+  (test/is (= [[:split :pea] [:navy :bean]]
+              (run* [r]
+                    (fresh [x y]
+                           (conde
+                            ((== :split x) (== :pea  y))
+                            ((== :navy  x) (== :bean y))
+                            (s#            u#))
+                           (== [x y] r)))))
+  
+  (test/is (= [[:split :pea :soup] [:navy :bean :soup]]
+              (run* [r]
+                    (fresh [x y]
+                           (conde
+                            ((== :split x) (== :pea  y))
+                            ((== :navy  x) (== :bean y))
+                            (s#            u#))
+                           (== [x y :soup] r)))))
+
+  (test/is (= '(tea cup) (run* [x] (teacup x))))
+  
   )
 
