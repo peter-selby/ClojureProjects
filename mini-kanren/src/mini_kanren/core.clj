@@ -21,10 +21,6 @@
   (alter-var-root #'*read-eval* (constantly false))
   (println "Hello, World!"))
 
-(defn teacup [x] (conde
-                  ((== 'tea x) s#)
-                  ((== 'cup x) s#)
-                  (s#          u#)))
 
 (test/deftest foo-test
   (test/is (= '(true)  (run* [q] (== q true))))
@@ -122,9 +118,109 @@
                             ((== :split x) (== :pea  y))
                             ((== :navy  x) (== :bean y))
                             (s#            u#))
-                           (== [x y :soup] r)))))
+                           (== [x y :soup] r))))))
 
+(defn teacup [x] (conde
+                  ((== 'tea x) s#)
+                  ((== 'cup x) s#)
+                  (s#          u#)))
+
+(defn teacup2 [x] (conde
+                   ((== :tea x) s#)
+                   ((== :cup x) s#)
+                   (s#          u#)))
+
+(test/deftest foo-test-2
   (test/is (= '(tea cup) (run* [x] (teacup x))))
+  ;; This next one produces its values in the reverse order predicted
+  ;; by the book and by common sense. The top-level conde produces the
+  ;; [false true] results (marked A) before producing the nested
+  ;; teacup2 results (marked B), no matter the order of A and B in the
+  ;; tope-level conde. TODO why?
+  (test/is (= [[false true] [:tea true] [:cup true]]
+              (run* [r]
+                    (fresh [x y]
+                           (conde
+                            ((teacup2 x)  (== true y) s#) ; B
+                            ((== false x) (== true y) s#) ; A
+                            (s#                       u#))
+                           (== [x y] r)))))
+
+  (test/is (= [[false true] [:tea true] [:cup true]]
+              (run* [r]
+                    (fresh [x y]
+                           (conde
+                            ((== false x) (== true y) s#) ; A
+                            ((teacup2 x)  (== true y) s#) ; B
+                            (s#                       u#))
+                           (== [x y] r)))))
+
+  ;; We can see this strange behavior in a simpler case that elides
+  ;; the 'fresh':
+  (test/is (= [:the-end :tea :cup])
+           (run* [x] (conde
+                      ((teacup2 x) s#)
+                      ((== :the-end x) s#)
+                      )))
   
+  (test/is (= [:the-end :tea :cup])
+           (run* [x] (conde
+                      ((== :the-end x) s#)
+                      ((teacup2 x) s#)
+                      )))
+
+  ;; But, if the last test is a fail, orders are preserved?
+  (test/is (= [:tea :cup])
+           (run* [x] (conde
+                      ((teacup2 x) s#)
+                      ((== :the-end x) u#)
+                      )))
+  
+  (test/is (= [:the-end])
+           (run* [x] (conde
+                      ((== :the-end x) s#)
+                      ((teacup2 x) u#)
+                      )))
+  ;; TODO investigate this behavior in the logic source; perhaps we
+  ;; need a def or a lambda that lives in the logic namespace?
+
+  (test/is (= '([_0 _1] [_0 _1])
+              (run* [r]
+                    (fresh [x y z]
+                           (conde
+                            ((== x y) (fresh [x] (== z x)))
+                            ((fresh [x] (== y x)) (== z x))
+                            (s# u#))
+                           (== [y z] r)))))
+
+  (test/is (= '([false _0] [_0 false])
+              (run* [r]
+                    (fresh [x y z]
+                           (conde
+                            ((== x y) (fresh [x] (== z x)))
+                            ((fresh [x] (== y x)) (== z x))
+                            (s# u#))
+                           (== [y z] r)
+                           (== x false)))))
+
+  (test/is (= [false]
+              (run* [q]
+                    (let [a (== true q)
+                          b (== false q)]
+                      b))))
+
+  (test/is (= '(true false)
+              (run* [q]
+                    (conde
+                     ((== true q) s#)
+                     (s# (== false q))))))
+  
+  ;; Last clause in a conde gets a default u#:
+  (test/is (= '(true false)
+              (run* [q]
+                    (conde
+                     ((== true q) s#)
+                     ((== false q) s#)))))
   )
+
 
