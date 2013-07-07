@@ -400,6 +400,10 @@
               '((b e a n s))))
 
   (test/is (= '(_0) (run* [x] (emptyo ()))))
+
+  (test/is (= ()) (run* [x] (emptyo '(grape raisin pear))))
+
+  (test/is (= '(()) (run* [x] (emptyo x))))
 )
 
 
