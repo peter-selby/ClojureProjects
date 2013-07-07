@@ -268,8 +268,18 @@
   (test/is (== '(a)
                (run* [r]
                      (firsto (lcons 'a (lcons 'c (lcons 'o (lcons 'r (lcons 'n ()))))) r))))
+
   (test/is (== '(a) (run* [r] (firsto '(a c o r n) r))))
+
   (test/is (== '(a) (run* [r] (firsto ['a 'c 'o 'r 'n] r))))
+
+  (test/is (== '(true) (run* [r] (firsto '(a c o r n) 'a) (== true r))))
+
+  ;; BUT, you must use lcons if you're doing internal associations
+  (test/is (== '((pear pear _0))
+               (run* [r x y] (firsto
+                              (lcons r (lcons y ()))
+                              x))))
   )
 
 
