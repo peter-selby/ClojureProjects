@@ -302,7 +302,13 @@
                             (firsto '(grape raisin pear) x)
                             (firsto '((a) (b) (c))       y)
                             (== r [x y])))))
-  )
+  
+  (test/is (= '(c))
+           (run* [r]
+                 (fresh [v]
+                        (resto '(a c o r n) v)
+                        (firsto v r))))
+)
 
 
 
