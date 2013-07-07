@@ -293,23 +293,28 @@
   ;; Haven't found how to make pairs with clojure.logic: it's not
   ;; pairo and it's not lpair.
   
-  (test/is (== '(grape a) (cons (first '(grape raisin pear))
-                                (first '((a) (b) (c))))))
+  (test/is (= '(grape a) (cons (first '(grape raisin pear))
+                               (first '((a) (b) (c))))))
 
-  (test/is (== '((grape a))
-               (run* [r]
-                     (fresh [x y]
-                            (firsto '(grape raisin pear) x)
-                            (firsto '((a) (b) (c))       y)
-                            (== r [x y])))))
-  
-  (test/is (= '(c)
+  (test/is (= '((grape (a)))
               (run* [r]
-                    (fresh [v]
-                           (resto '(a c o r n) v)
-                           (firsto v r)))))
+                    (fresh [x y]
+                           (firsto '(grape raisin pear) x)
+                           (firsto '((a) (b) (c))       y)
+                           (== r [x y])))))
+  
+  #_(test/is (= '(c)
+                (run* [r]
+                      (fresh [v]
+                             (resto '(a c o r n) v)
+                             (firsto v r)))))
 
-
+  #_(test/is (= '(((raisin pear) a))
+                (run* [r]
+                      (fresh [x y]
+                             (resto '(grape raisin pear) x)
+                             (firsto '((a) (b) (c))      y)
+                             (== (lcons x (lcons y ())) r)))))
 )
 
 
