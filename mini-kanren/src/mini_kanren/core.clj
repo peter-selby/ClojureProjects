@@ -44,6 +44,7 @@
               (run* [r] (fresh [x y] (== (lcons x (lcons y ())) r)))))
   (test/is (= '((_0 _1 _0))
               (run* [r] (fresh [x y] (== (lcons x (lcons y (lcons x ()))) r)))))
+
   ;; Variables are reified "late:" in the order in which they appear
   ;; in "ouput-generating" forms when unifying against variables.
   ;; Here, y gets reified first, then x. They're not reified in the
@@ -136,11 +137,16 @@
 
 (test/deftest foo-test-01-2
   (test/is (= '(tea cup) (run* [x] (teacup x))))
+
   ;; This next one produces its values in the reverse order predicted
   ;; by the book and by common sense. The top-level conde produces the
   ;; [false true] results (marked A) before producing the nested
   ;; teacup2 results (marked B), no matter the order of A and B in the
-  ;; tope-level conde. TODO why?
+  ;; tope-level conde. The wiki explains that clojure.logic's "conde"
+  ;; is really the book's "condi", and the order of results is not
+  ;; predictable. Clojure.logic does not offer an equivalent to the
+  ;; book's "conde".
+  
   (test/is (= [[false true] [:tea true] [:cup true]]
               (run* [r]
                     (fresh [x y]
@@ -159,8 +165,8 @@
                             (s#                       u#))
                            (== [x y] r)))))
 
-  ;; We can see this strange behavior in a simpler case that elides
-  ;; the 'fresh':
+  ;; We can see this "condi-like" behavior in a simpler case that
+  ;; elides the 'fresh':
   (test/is (= [:the-end :tea :cup])
            (run* [x] (conde
                       ((teacup2 x) s#)
@@ -173,7 +179,7 @@
                       ((teacup2 x) s#)
                       )))
 
-  ;; But, if the last test is a fail, orders are preserved?
+  ;; But, if the last test is a fail, orders are preserved:
   (test/is (= [:tea :cup])
            (run* [x] (conde
                       ((teacup2 x) s#)
@@ -185,8 +191,6 @@
                       ((== :the-end x) s#)
                       ((teacup2 x) u#)
                       )))
-  ;; TODO investigate this behavior in the logic source; perhaps we
-  ;; need a def or a lambda that lives in the logic namespace?
 
   (test/is (= '([_0 _1] [_0 _1])
               (run* [r]
@@ -213,7 +217,8 @@
                           b (== false q)]
                       b))))
 
-  ;; Use two expressions to investigate stopping conditions for conde.
+  ;; The folloowing two expressions investigate stopping conditions
+  ;; for conde.
   (test/is (= '(true false)
               (run* [q]
                     (conde
@@ -252,13 +257,14 @@
                        y 'c]
                    (x y))))
 
-  ;; Regular lists, but not quoted, work in goals:
+  ;; Regular lists, but not quoted when they contain logic variables,
+  ;; work in goals:
   (test/is (= '((_0 _1)) (run* [q] (fresh [x y] (== (list x y) q)))))
 
-  ;; Lcons can get variables out:
+  ;; Lcons can deliver the values of variables:
   (test/is (= '((_0 _1)) (run* [q] (fresh [x y] (== (lcons x (lcons y ())) q)))))  
 
-  ;; Vectors can get variables out of a goal:
+  ;; Vectors can get the values of variables out of a goal:
   (test/is (= ['(_0 _1)] (run* [q] (fresh [x y] (== [x y] q)))))
 
   (test/is (= ['(_0 _1)] (run* [q] (fresh [x y]
@@ -267,8 +273,8 @@
 
   ;; "firsto" works on lists, lcons-lists, and vectors
   (test/is (= '(a)
-               (run* [r]
-                     (firsto (lcons 'a (lcons 'c (lcons 'o (lcons 'r (lcons 'n ()))))) r))))
+             (run* [r]
+               (firsto (lcons 'a (lcons 'c (lcons 'o (lcons 'r (lcons 'n ()))))) r))))
 
   (test/is (= '(a) (run* [r] (firsto '(a c o r n) r))))
 
@@ -276,25 +282,32 @@
 
   (test/is (= '(true) (run* [r] (firsto '(a c o r n) 'a) (== true r))))
 
+  ;; No solution to the next one; it fails:
+  (test/is (= '() (run* [r] (firsto '(a c o r n) 'z) (== true r))))
+
   ;; You don't need to use lcons if you're doing internal associations
   (test/is (= '((pear pear _0))
-              (run* [r x y] (firsto
-                             (lcons r (lcons y ()))
-                             x)
+              (run* [r x y]
+                    (firsto
+                     (lcons r (lcons y ()))
+                     x)
                     (== 'pear x))))
 
   (test/is (= '((pear pear _0))
-              (run* [r x y] (firsto
-                             (list r y)
-                             x)
+              (run* [r x y]
+                    (firsto
+                     (list r y)
+                     x)
                     (== 'pear x))))
 
   (test/is (= '((pear pear _0))
-              (run* [r x y] (firsto
-                             [r y]
-                             x)
+              (run* [r x y]
+                    (firsto
+                     [r y]
+                     x)
                     (== 'pear x))))
 
+  ;; Back to regular lisp for a trice:
   (test/is (= '(grape a) (cons (first '(grape raisin pear))
                                (first '((a) (b) (c))))))
 
@@ -303,6 +316,8 @@
                     (fresh [x y]
                            (firsto '(grape raisin pear) x)
                            (firsto '((a) (b) (c))       y)
+                           ;; LCONS can do improper pairs; that's
+                           ;; apparently its main reason for existence:
                            (== r (lcons x y))))))
   
   (test/is (= '(c)
@@ -323,6 +338,7 @@
                     (resto '(a c o r n) '(c o r n))
                     (== true q))))
 
+  ;; works with vectors, lists, and lcons-trains, again:
   (test/is (= '(o)
               (run* [x]
                     (resto '(c o r n)
@@ -336,13 +352,20 @@
   (test/is (= '(o)
               (run* [x]
                     (resto '(c o r n)
-                           [x 'r 'n]))))
+                           (lcons x (lcons 'r (lcons 'n ())))))))
 
-  ;; This does NOT work with llist: NO SOLUTION
+  ;; This does NOT work with llist: NO SOLUTION TODO understand.
   (test/is (= () ;; '(o)
               (run* [x]
                     (resto '(c o r n)
                            (llist x 'r 'n)))))
+
+  (test/is (= '((a c o r n))
+              (run* [l]
+                    (fresh [x]
+                           (resto l '(c o r n))
+                           (firsto l x)
+                           (== 'a x)))))
 )
 
 
