@@ -259,6 +259,17 @@
 
   ;; Vectors seem to work also:
   (test/is (== ['(x y)] (run* [q] (fresh [x y] (== [x y] q)))))
+
+  (test/is (== ['(x y)] (run* [q] (fresh [x y]
+                                         (let [u x, v y]
+                                           (== [u v] q))))))
+
+  ;; "firsto" works on lists, lcons-lists, and vectors
+  (test/is (== '(a)
+               (run* [r]
+                     (firsto (lcons 'a (lcons 'c (lcons 'o (lcons 'r (lcons 'n ()))))) r))))
+  (test/is (== '(a) (run* [r] (firsto '(a c o r n) r))))
+  (test/is (== '(a) (run* [r] (firsto ['a 'c 'o 'r 'n] r))))
   )
 
 
