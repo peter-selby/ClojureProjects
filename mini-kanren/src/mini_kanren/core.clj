@@ -280,6 +280,14 @@
                (run* [r x y] (firsto
                               (lcons r (lcons y ()))
                               x))))
+  (test/is (== ()
+               (run* [r x y] (firsto
+                              '(r y)
+                              x))))
+  (test/is (== ()
+               (run* [r x y] (firsto
+                              [r y]
+                              x))))
   )
 
 
