@@ -1,7 +1,7 @@
 (ns mini-kanren.core
   (:refer-clojure :exclude [==])
   (:require [clojure.test :as test])
-  (:gen-class)
+  #_(:gen-class)
   (:use [clojure.core.logic]))
 
 (defmacro pdump [x]
@@ -366,6 +366,40 @@
                            (resto l '(c o r n))
                            (firsto l x)
                            (== 'a x)))))
+
+  (test/is (= '(((a b c) d e))
+              (run* [l] (conso '(a b c) '(d e) l))))
+
+  (test/is (= '(d) (run* [x] (conso x '(a b c) '(d a b c)))))
+
+  (test/is (= '((e a d c))
+              (run* [r]
+                    (fresh [x y z]
+                           (== (list 'e 'a 'd x) r)
+                           (conso y (list 'a z 'c) r)))))
+
+  (test/is (= '(d)
+              (run* [x]
+                    (conso x ['a x 'c] ['d 'a x 'c]))))
+
+  (test/is (= (run* [l]
+                    (fresh [x]
+                           (== ['d 'a x 'c] l)
+                           (conso x ['a x 'c] l)))
+              '((d a d c))))
+
+  (test/is (= (run* [l]
+                    (fresh [d x y w s]
+                           (conso w ['a 'n 's] s)
+                           (resto l s)
+                           (firsto l x)
+                           (== 'b x)
+                           (resto l d)
+                           (firsto d y)
+                           (== 'e y)))
+              '((b e a n s))))
+
+  (test/is (= '(_0) (run* [x] (emptyo ()))))
 )
 
 
