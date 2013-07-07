@@ -425,10 +425,6 @@
               ;; the result of (pairo x), even though they look
               ;; exactly the same.
 
-              ;; The expression (run* [x y] (lcons x y)) creates a
-              ;; compiler error "clojure.core.logic.LCons cannot be
-              ;; cast to clojure.lang.IFn". Here is a workaround.
-
               (run* [q] (fresh [x y] (== (lcons x y) q)))
               ))
   
