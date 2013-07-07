@@ -1,6 +1,6 @@
 (ns mini-kanren.core
   (:use clojure.core.logic)
-  (:refer-clojure :exclude [== inc]))
+  (:refer-clojure :exclude [==]))
 
 (defn set=
   "Returns true if a and b have the same elements, regardless of order"

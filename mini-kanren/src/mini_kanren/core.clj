@@ -331,7 +331,7 @@
                     (fresh [x y]
                            (resto '(grape raisin pear) x)
                            (firsto '((a) (b) (c))      y)
-                           (== (lcons x  y) r)))))
+                           (== (lcons x y) r)))))
 
   (test/is (= [true]
               (run* [q]
@@ -410,8 +410,29 @@
   ;; Solution equals the empty list:
   (test/is (= '(()) (run* [x] (emptyo x))))
 
+  (test/is (= 'plum 'plum))
+
+  ;; No solution:
+  (test/is (= (run* [q] (== 'pear 'plum) (== 'true q))) '())
+
+  (test/is (= (run* [q] (pairo (lcons 'pear ())) (== 'true q)) '(true)))
+
+  (test/is (= (run* [q] (resto (lcons 'pear ()) q)) '(())))
+
+  (test/is (= (run* [x] (pairo x))
+
+              ;; The notation '(_0 . _1) ends up not being equal to
+              ;; the result of (pairo x), even though they look
+              ;; exactly the same.
+
+              ;; The expression (run* [x y] (lcons x y)) creates a
+              ;; compiler error "clojure.core.logic.LCons cannot be
+              ;; cast to clojure.lang.IFn". Here is a workaround.
+
+              (run* [q] (fresh [x y] (== (lcons x y) q)))
+              ))
   
-)
+  )
 
 
 
