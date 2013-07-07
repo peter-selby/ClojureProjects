@@ -426,11 +426,19 @@
               ;; the result of (pairo x), even though they look
               ;; exactly the same.
 
-              (run* [q] (fresh [x y] (== (lcons x y) q)))
-              
-              ))
+              (run* [q] (fresh [x y] (== (lcons x y) q))))))
 
+(test/deftest foo-test-03-1
+  (test/is (= '(true) (run* [q] (== (llist 'a 'b) (lcons 'a 'b)) (== q 'true))))
   )
+
+;;;   ___ _              _             ____
+;;;  / __| |_  __ _ _ __| |_ ___ _ _  |__ /
+;;; | (__| ' \/ _` | '_ \  _/ -_) '_|  |_ \
+;;;  \___|_||_\__,_| .__/\__\___|_|   |___/
+;;;                |_|
+
+
 
 (defn -main []
   (test/run-all-tests #"mini-kanren.core"))
