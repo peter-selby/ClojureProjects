@@ -317,6 +317,32 @@
                            (resto '(grape raisin pear) x)
                            (firsto '((a) (b) (c))      y)
                            (== (lcons x  y) r)))))
+
+  (test/is (= [true]
+              (run* [q]
+                    (resto '(a c o r n) '(c o r n))
+                    (== true q))))
+
+  (test/is (= '(o)
+              (run* [x]
+                    (resto '(c o r n)
+                           [x 'r 'n]))))
+
+  (test/is (= '(o)
+              (run* [x]
+                    (resto '(c o r n)
+                           (list x 'r 'n)))))
+
+  (test/is (= '(o)
+              (run* [x]
+                    (resto '(c o r n)
+                           [x 'r 'n]))))
+
+  ;; This does NOT work with llist: NO SOLUTION
+  (test/is (= () ;; '(o)
+              (run* [x]
+                    (resto '(c o r n)
+                           (llist x 'r 'n)))))
 )
 
 
