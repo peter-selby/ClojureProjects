@@ -21,8 +21,13 @@
   (alter-var-root #'*read-eval* (constantly false))
   (println "Hello, World!"))
 
+;;;   ___ _              _             _ 
+;;;  / __| |_  __ _ _ __| |_ ___ _ _  / |
+;;; | (__| ' \/ _` | '_ \  _/ -_) '_| | |
+;;;  \___|_||_\__,_| .__/\__\___|_|   |_|
+;;;                |_|                   
 
-(test/deftest foo-test
+(test/deftest foo-test-01-1
   (test/is (= '(true)  (run* [q] (== q true))))
   (test/is (= '(true)  (run* [q] s# (== true q))))
   (test/is (= '()      (run* [q] u# (== true q))))
@@ -130,7 +135,7 @@
                    ((== :cup x) s#)
                    (s#          u#)))
 
-(test/deftest foo-test-2
+(test/deftest foo-test-01-2
   (test/is (= '(tea cup) (run* [x] (teacup x))))
   ;; This next one produces its values in the reverse order predicted
   ;; by the book and by common sense. The top-level conde produces the
@@ -209,6 +214,7 @@
                           b (== false q)]
                       b))))
 
+  ;; Use two expressions to investigate stopping conditions for conde.
   (test/is (= '(true false)
               (run* [q]
                     (conde
@@ -221,6 +227,39 @@
                     (conde
                      ((== true q) s#)
                      ((== false q) s#)))))
+
+  (test/is (= [false]
+              (run* [q]
+                    (let [a (== true q) ; This never runs.
+                          b (fresh [x]
+                                   (== x q)
+                                   (== false x))
+                          c (conde
+                             ((== true q) s#)
+                             ((== 42 q))) ; This never runs.
+                          ]
+                      b))))
   )
+
+;;;   ___ _              _             ___ 
+;;;  / __| |_  __ _ _ __| |_ ___ _ _  |_  )
+;;; | (__| ' \/ _` | '_ \  _/ -_) '_|  / / 
+;;;  \___|_||_\__,_| .__/\__\___|_|   /___|
+;;;                |_|
+
+(test/deftest foo-test-02-1
+  
+  (test/is (== 'c (let [x (fn [a] a)
+                        y 'c]
+                    (x y))))
+
+  ;; Regular lists and lcons-lists seem to work in goals:
+  (test/is (== '((x y)) (run* [q] (fresh [x y] (== '(x y) q)))))
+  (test/is (== '((x y)) (run* [q] (fresh [x y] (== (lcons x (lcons y ())) q)))))  
+
+  ;; Vectors seem to work also:
+  (test/is (== ['(x y)] (run* [q] (fresh [x y] (== [x y] q)))))
+  )
+
 
 
