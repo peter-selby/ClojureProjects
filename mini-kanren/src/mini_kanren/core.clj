@@ -278,16 +278,17 @@
   ;; BUT, you must use lcons if you're doing internal associations
   (test/is (== '((pear pear _0))
                (run* [r x y] (firsto
-                              (lcons r (lcons y ()))
-                              x))))
+                              (lcons r (lcons y ())) ;; with the first
+                              ;; of this lcons . . .
+                              x)))) ;; associate this variable.
   (test/is (== ()
                (run* [r x y] (firsto
-                              '(r y)
-                              x))))
+                              '(r y) ;; These aren't logic variables ...
+                              x)))) ;; so there is no solution.
   (test/is (== ()
                (run* [r x y] (firsto
-                              [r y]
-                              x))))
+                              [r y] ;; These aren't logic variables ...
+                              x)))) ;; so there is no solution.
   )
 
 
