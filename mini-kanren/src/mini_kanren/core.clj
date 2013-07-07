@@ -2,8 +2,7 @@
   (:refer-clojure :exclude [==])
   (:require [clojure.test :as test])
   (:gen-class)
-  (:use [clojure.core.logic]
-        ))
+  (:use [clojure.core.logic]))
 
 (defmacro pdump [x]
   `(let [x# ~x]
@@ -249,46 +248,52 @@
 
 (test/deftest foo-test-02-1
   
-  (test/is (== 'c (let [x (fn [a] a)
-                        y 'c]
-                    (x y))))
+  (test/is (= 'c (let [x (fn [a] a)
+                       y 'c]
+                   (x y))))
 
-  ;; Regular lists and lcons-lists seem to work in goals:
-  (test/is (== '((x y)) (run* [q] (fresh [x y] (== '(x y) q)))))
-  (test/is (== '((x y)) (run* [q] (fresh [x y] (== (lcons x (lcons y ())) q)))))  
+  ;; Regular lists, but not quoted, work in goals:
+  (test/is (= '((_0 _1)) (run* [q] (fresh [x y] (== (list x y) q)))))
 
-  ;; Vectors seem to work also:
-  (test/is (== ['(x y)] (run* [q] (fresh [x y] (== [x y] q)))))
+  ;; Lcons can get variables out:
+  (test/is (= '((_0 _1)) (run* [q] (fresh [x y] (== (lcons x (lcons y ())) q)))))  
 
-  (test/is (== ['(x y)] (run* [q] (fresh [x y]
-                                         (let [u x, v y]
-                                           (== [u v] q))))))
+  ;; Vectors can get variables out of a goal:
+  (test/is (= ['(_0 _1)] (run* [q] (fresh [x y] (== [x y] q)))))
+
+  (test/is (= ['(_0 _1)] (run* [q] (fresh [x y]
+                                          (let [u x, v y]
+                                            (== [u v] q))))))
 
   ;; "firsto" works on lists, lcons-lists, and vectors
-  (test/is (== '(a)
+  (test/is (= '(a)
                (run* [r]
                      (firsto (lcons 'a (lcons 'c (lcons 'o (lcons 'r (lcons 'n ()))))) r))))
 
-  (test/is (== '(a) (run* [r] (firsto '(a c o r n) r))))
+  (test/is (= '(a) (run* [r] (firsto '(a c o r n) r))))
 
-  (test/is (== '(a) (run* [r] (firsto ['a 'c 'o 'r 'n] r))))
+  (test/is (= '(a) (run* [r] (firsto ['a 'c 'o 'r 'n] r))))
 
-  (test/is (== '(true) (run* [r] (firsto '(a c o r n) 'a) (== true r))))
+  (test/is (= '(true) (run* [r] (firsto '(a c o r n) 'a) (== true r))))
 
-  ;; BUT, you must use lcons if you're doing internal associations
-  (test/is (== '((pear pear _0))
-               (run* [r x y] (firsto
-                              (lcons r (lcons y ())) ;; with the first
-                              ;; of this lcons . . .
-                              x)))) ;; associate this variable.
-  (test/is (== ()
-               (run* [r x y] (firsto
-                              '(r y) ;; These aren't logic variables ...
-                              x)))) ;; so there is no solution.
-  (test/is (== ()
-               (run* [r x y] (firsto
-                              [r y] ;; These aren't logic variables ...
-                              x)))) ;; so there is no solution.
+  ;; You don't need to use lcons if you're doing internal associations
+  (test/is (= '((pear pear _0))
+              (run* [r x y] (firsto
+                             (lcons r (lcons y ()))
+                             x)
+                    (== 'pear x))))
+
+  (test/is (= '((pear pear _0))
+              (run* [r x y] (firsto
+                             (list r y)
+                             x)
+                    (== 'pear x))))
+
+  (test/is (= '((pear pear _0))
+              (run* [r x y] (firsto
+                             [r y]
+                             x)
+                    (== 'pear x))))
 
   ;; Haven't found how to make pairs with clojure.logic: it's not
   ;; pairo and it's not lpair.
@@ -303,18 +308,21 @@
                            (firsto '((a) (b) (c))       y)
                            (== r [x y])))))
   
-  #_(test/is (= '(c)
-                (run* [r]
-                      (fresh [v]
-                             (resto '(a c o r n) v)
-                             (firsto v r)))))
+  (test/is (= '(c)
+              (run* [r]
+                    (fresh [v]
+                           (resto '(a c o r n) v)
+                           (firsto v r)))))
 
-  #_(test/is (= '(((raisin pear) a))
-                (run* [r]
-                      (fresh [x y]
-                             (resto '(grape raisin pear) x)
-                             (firsto '((a) (b) (c))      y)
-                             (== (lcons x (lcons y ())) r)))))
+  ;; "lcons" doesn't create pairs. I still don't know how to create
+  ;; them, so my tests are a little out of sync with the book, but
+  ;; the lack of pairs seems to be the only lacuna.
+  (test/is (= '(((raisin pear) (a)))
+              (run* [r]
+                    (fresh [x y]
+                           (resto '(grape raisin pear) x)
+                           (firsto '((a) (b) (c))      y)
+                           (== (lcons x (lcons y ())) r)))))
 )
 
 
