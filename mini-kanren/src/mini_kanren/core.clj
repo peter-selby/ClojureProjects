@@ -401,9 +401,16 @@
 
   (test/is (= '(_0) (run* [x] (emptyo ()))))
 
+  ;; No solution:
   (test/is (= ()) (run* [x] (emptyo '(grape raisin pear))))
 
+  ;; Solution reaches (== true q) because the empty list is emptyo:
+  (test/is (= '(true) (run* [q] (emptyo ()) (== true q))))
+
+  ;; Solution equals the empty list:
   (test/is (= '(()) (run* [x] (emptyo x))))
+
+  
 )
 
 
