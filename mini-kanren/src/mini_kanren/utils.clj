@@ -2,6 +2,9 @@
   (:use clojure.core.logic)
   (:refer-clojure :exclude [==]))
 
+;;; borrowed from
+;;; https://github.com/candera/reasoned-schemer
+
 (defn set=
   "Returns true if a and b have the same elements, regardless of order"
   [a b]
@@ -18,3 +21,12 @@
   [p]
   (fresh [a d]
     (== (lcons a d) p)))
+
+(defn listo
+  [l]
+  (conde
+   ((emptyo l) s#)
+   ((pairo l) (fresh [d]
+                     (resto l d)
+                     (listo d)))
+   ((s# u#))))

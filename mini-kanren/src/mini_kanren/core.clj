@@ -437,6 +437,9 @@
 (test/deftest foo-test-03-1
   (test/is (= '(true) (run* [q] (== (llist 'a 'b) (lcons 'a 'b)) (== q 'true))))
 
+  (test/is (= '(true) (run* [q] (listo ()) (== q 'true))))
+
+  (test/is (= '([true _0]) (run* [q x] (listo '(a b x d)) (== q 'true))))
   )
 
 ;;;  __  __      _      
