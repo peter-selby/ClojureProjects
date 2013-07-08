@@ -1,9 +1,6 @@
 (ns mini-kanren.core-test
   (:refer-clojure :exclude [==])
-  (:require [clojure.test :as test]
-            [mini-kanren.core]
-            [mini-kanren.utils]
-            )
+  (:require [clojure.test :as test])
   (:use [clojure.core.logic]))
 
 (test/deftest a-test

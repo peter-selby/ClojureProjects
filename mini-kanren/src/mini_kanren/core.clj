@@ -14,13 +14,6 @@
          (println "----------------")
          x#)))
 
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  ;; work around dangerous default behaviour in Clojure
-  (alter-var-root #'*read-eval* (constantly false))
-  (println "Hello, World!"))
-
 ;;;   ___ _              _             _ 
 ;;;  / __| |_  __ _ _ __| |_ ___ _ _  / |
 ;;; | (__| ' \/ _` | '_ \  _/ -_) '_| | |
