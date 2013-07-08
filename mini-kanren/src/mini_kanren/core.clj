@@ -453,6 +453,14 @@
   ;; and does not terminate:
   (test/is (= '(() (_0) (_0 _1) (_0 _1 _2) (_0 _1 _2 _3))
               (run 5 [x] (listo (llist 'a 'b 'c x)))))
+
+  ;; One solution: the empty list:
+  (test/is (= (run 1 [l] (lolo l)) '(())))
+
+  ;; Frame 22: emptyo always succeeds against a fresh var:
+  (test/is (= '(()) (run* [q] (emptyo q))))
+
+  #_(test/is (= '(((a b) (c d))) (run 1 [x] (lolo (llist '(a b) '(c d) x)))))
   )
 
 ;;;  __  __      _      

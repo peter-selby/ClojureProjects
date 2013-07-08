@@ -23,6 +23,7 @@
     (== (lcons a d) p)))
 
 (defn listo
+  "Succeeds if l is a proper list."
   [l]
   (conde
    ((emptyo l) s#)
@@ -30,3 +31,15 @@
                      (resto l d)
                      (listo d)))
    ((s# u#))))
+
+(defn lolo
+  "Succeeds if l is a list-of-lists."
+  [l]
+  (conde
+   ((emptyo l) s#)
+   ((fresh [a]
+           (firsto l a)
+           (listo a)) (fresh [d]
+                             (resto l d)
+                             (lolo d)))
+   (s# u#)))
