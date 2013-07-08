@@ -1,7 +1,6 @@
 (ns mini-kanren.core
   (:refer-clojure :exclude [==])
-  (:require [clojure.test :as test]
-            [mini-kanren.utils])
+  (:require [clojure.test :as test])
   #_(:gen-class)
   (:use [clojure.core.logic]))
 
