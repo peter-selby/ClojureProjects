@@ -443,7 +443,16 @@
 
   (test/is (= '([true _0]) (run* [q x] (listo (llist 'a 'b x 'd ())) (== q 'true))))
 
+  ;; This next one is not a proper list
   (test/is (= '() (run* [q x] (listo (llist 'a 'b x 'd)) (== q 'true))))
+
+  ;; But it is a pair
+  (test/is (= '([true _0]) (run* [q x] (pairo (llist 'a 'b x 'd)) (== q 'true))))
+
+  ;; Don't run* the next one: it finds an infinite number of solutions
+  ;; and does not terminate:
+  (test/is (= '(() (_0) (_0 _1) (_0 _1 _2) (_0 _1 _2 _3))
+              (run 5 [x] (listo (llist 'a 'b 'c x)))))
   )
 
 ;;;  __  __      _      
