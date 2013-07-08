@@ -440,6 +440,10 @@
   (test/is (= '(true) (run* [q] (listo ()) (== q 'true))))
 
   (test/is (= '([true _0]) (run* [q x] (listo '(a b x d)) (== q 'true))))
+
+  (test/is (= '([true _0]) (run* [q x] (listo (llist 'a 'b x 'd ())) (== q 'true))))
+
+  (test/is (= '() (run* [q x] (listo (llist 'a 'b x 'd)) (== q 'true))))
   )
 
 ;;;  __  __      _      
