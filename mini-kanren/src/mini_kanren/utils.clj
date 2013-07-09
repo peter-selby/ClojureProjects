@@ -145,4 +145,25 @@
               (resto l d)
               (pmembero x d)))))
 
+;;; Frame 3-95
+(defn memberrevo
+  "Succeeds if x is a member of proper list l, and produces all unique solutions in reverse order (however, this does not work in clojure since we don't have an order-preserving 'conde'."
+  [x l]
+  (conde
+   (s# (fresh [d]
+              (resto l d)
+              (memberrevo x d)))
+   (s# (eq-caro l x))
+   ))
+
+;;; Frame 4-7
+(defn memo
+  "Succeeds when out equals the sublist of l whose first (car) is x."
+  [x l out]
+  (conde
+   ((eq-caro l x) (== l out))
+   (s# (fresh [d]
+              (resto l d)
+              (memo x d out)))))
+
 

@@ -621,5 +621,45 @@
    (= '(true true)
       (run* [q] (pmembero 'tofu '(a b tofu d tofu)) (== q true))))
 
+  ;; Frame 3-89
+  (test/is
+   (= '((tofu)
+        (tofu _0 . _1)
+        (_0 tofu)
+        (_0 tofu _1 . _2)
+        (_0 _1 tofu)
+        (_0 _1 tofu _2 . _3)
+        (_0 _1 _2 tofu)
+        (_0 _1 _2 tofu _3 . _4)
+        (_0 _1 _2 _3 tofu)
+        (_0 _1 _2 _3 tofu _4 . _5)
+        (_0 _1 _2 _3 _4 tofu)
+        (_0 _1 _2 _3 _4 tofu _5 . _6))))
+  (run 12 [l] (pmembero 'tofu l))
+
+  ;; Frame 3-100 -- Our conde doesn't have the same order as the book's
+  ;; conde.
+  (test/is
+   (= '(pasta e fagioli)
+      (run* [x] (memberrevo x '(pasta e fagioli)))))
+
   )
 
+;;;   ___ _              _             _ _  
+;;;  / __| |_  __ _ _ __| |_ ___ _ _  | | | 
+;;; | (__| ' \/ _` | '_ \  _/ -_) '_| |_  _|
+;;;  \___|_||_\__,_| .__/\__\___|_|     |_| 
+;;;                |_|                      
+
+(test/deftest foo-test-04-1
+
+  (test/is
+   (= '((tofu d tofu e))
+      (run 1 [out] (memo 'tofu '(a b tofu d tofu e) out))))
+
+  (test/is
+   (= '((tofu d tofu e))
+      (run 1 [out]
+           (fresh [x]
+                  (memo 'tofu (list 'a 'b x 'd 'tofu 'e) out)))))
+)
