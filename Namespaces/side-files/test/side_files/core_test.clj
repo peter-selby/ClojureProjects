@@ -3,5 +3,7 @@
             [side-files.core :refer :all]))
 
 (deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+  (testing "I work great for functions defined in core.clj."
+    (is (= 42 (f 41)))
+    (is (= 1764 (g 42)))
+    ))
