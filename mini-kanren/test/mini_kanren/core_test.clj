@@ -520,6 +520,7 @@
         )
       (run 5 [z] (loto (llist '(g g) z)))))
 
+  ;; Frame 3-45
   (test/is
    (= '((e (_0 _0) ())
         (e (_0 _0) ((_1 _1)))
@@ -532,4 +533,17 @@
                   (loto (llist '(g g) (list 'e w) (list x y) z))
                   (== (list w (list x y) z) r)))
       ))
+
+  ;; Frame 3-49
+  (test/is
+   (= '(((g g) (e e) (_0 _0))
+        ((g g) (e e) (_0 _0) (_1 _1))
+        ((g g) (e e) (_0 _0) (_1 _1) (_2 _2))
+        ((g g) (e e) (_0 _0) (_1 _1) (_2 _2) (_3 _3))
+        ((g g) (e e) (_0 _0) (_1 _1) (_2 _2) (_3 _3) (_4 _4))
+        )
+      (run 5 [out]
+           (fresh [w x y z]
+                  (== (llist '(g g) (list 'e w) (list x y) z) out)
+                  (listofo twinso out)))))
 )

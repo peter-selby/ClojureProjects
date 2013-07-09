@@ -85,3 +85,9 @@
                              (resto l d)
                              (listofo predo d)))
    (s# u#)))
+
+;;; Frame 3-50
+(defn loto
+  "Succeeds if l is a list of twins."
+  [l]
+  (listofo twinso l))
