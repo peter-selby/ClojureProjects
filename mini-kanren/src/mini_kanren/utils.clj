@@ -43,3 +43,32 @@
                              (resto l d)
                              (lolo d)))
    (s# u#)))
+
+(defn twinso
+  "Succeeds if l is a list of identical items."
+  [l]
+  (fresh [x y]
+         (conso x y l)
+         (conso x () y)
+         ))
+
+;;; Frame 3-36
+(defn twinso
+  "Succeeds if l is a list of identical items."
+  [l]
+  (fresh [x]
+         (== (list x x) l)
+         ))
+
+;;; Frame 3-37
+(defn loto
+  "Succeeds if l is a list of twins."
+  [l]
+  (conde
+   ((emptyo l) s#)
+   ((fresh [a]
+            (firsto l a)
+            (twinso a)) (fresh [d]
+                               (resto l d)
+                               (loto d)))
+   (s# u#)))

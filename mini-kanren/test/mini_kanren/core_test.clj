@@ -462,5 +462,63 @@
         (() () ())
         ((_0 _1 _2)))
       (run 9 [x] (lolo (llist '(a b) '(c d) x)))))
+
+  ;; Checking an equivalence between conso and llist:
+  (test/is
+   (= (run 1 [q] (== q (llist 1 2)))
+      (run 1 [q] (conso 1 2 q))))
+
+  ;; Frame 3-32
+  (test/is
+   (= '(true)
+      (run* [q]
+            (twinso '(tofu tofu))
+            (== true q))))
+
+  (test/is
+   (= '(true)
+      (run* [q]
+            (twinso (list 'tofu 'tofu))
+            (== true q))))
+
+  (test/is
+   (= '(true)
+      (run* [q]
+            (twinso (llist 'tofu 'tofu ()))
+            (== true q))))
+
+
+  (test/is
+   (= '(true)
+      (run* [q]
+            (twinso ['tofu 'tofu])
+            (== true q))))
   
-  )
+  ;; Frame 3-33
+  (test/is
+   (= '(tofu)
+      (run* [q]
+            (twinso (list q 'tofu)))))
+
+  (test/is
+   (= '(tofu)
+      (run* [q]
+            (twinso (list 'tofu q)))))
+
+  ;; Frame 3-37
+  (test/is
+   (= '(())
+      (run 1 [z] (loto (llist '(g g) z)))))
+
+  ;; Frame 3-42 
+  (test/is
+   (= '(()
+        ((_0 _0))
+        ((_0 _0) (_1 _1))
+        ((_0 _0) (_1 _1) (_2 _2))
+        ((_0 _0) (_1 _1) (_2 _2) (_3 _3))
+        )
+      (run 5 [z] (loto (llist '(g g) z)))))
+
+  
+)
