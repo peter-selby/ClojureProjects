@@ -447,5 +447,20 @@
   (test/is (=
             '(())
             (run 1 [x] (lolo (llist '(a b) '(c d) x)))))
-  )
 
+  ;; Clojure.logic's conde really produces interleaved results, so it
+  ;; gets around to solutions that TRS's conde never finds. See
+  ;; http://bit.ly/1a8QmPJ .
+  (test/is
+   (= '(()
+        (())
+        ((_0))
+        (() ())
+        ((_0 _1))
+        (() (_0))
+        ((_0) ())
+        (() () ())
+        ((_0 _1 _2)))
+      (run 9 [x] (lolo (llist '(a b) '(c d) x)))))
+  
+  )
