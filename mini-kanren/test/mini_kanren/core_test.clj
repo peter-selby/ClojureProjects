@@ -662,4 +662,18 @@
       (run 1 [out]
            (fresh [x]
                   (memo 'tofu (list 'a 'b x 'd 'tofu 'e) out)))))
+
+  (test/is
+   (= '(tofu)
+      (run* [r]
+            (memo r
+                  '(a b tofu d tofu e)
+                  '(tofu d tofu e)))))
+
+  ;; Frame 4-17
+  (test/is
+   (= '((tofu d tofu e) (tofu e))
+      (run* [out]
+            (fresh [x]
+                   (memo 'tofu (list 'a 'b x 'd 'tofu 'e) out)))))
 )
