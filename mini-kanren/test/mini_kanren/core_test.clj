@@ -553,4 +553,50 @@
       (run* [q]
             (membero 'olive '(virgin olive oil))
             (== true q))))
-)
+
+  ;; Frame 3-58
+  (test/is
+   (= '(hummus with pita)
+      (run 3 [y]
+           (membero y '(hummus with pita)))))
+
+  ;; I ask for three solutions, but there is only one. 
+  (test/is
+   (= '(pita)
+      (run 3 [y]
+           (membero y '(pita)))))
+
+  ;; Frame 3-62
+  ;; Ask for all solutions. 
+  (test/is
+   (= '(hummus with pita)
+      (run* [y]
+           (membero y '(hummus with pita)))))
+
+  ;; Frame 3-66
+  (test/is
+   (= '(e)
+      (run* [x]
+            (membero 'e (list 'pasta x 'fagioli)))))
+
+  ;; Frame 3-69
+  (test/is
+   (= '(_0)
+      (run 1 [x]
+           (membero 'e (list 'pasta 'e x 'fagioli)))))
+
+  ;; Frame 3-70
+  (test/is
+   (= '(e)
+      (run 1 [x]
+           (membero 'e (list 'pasta x 'e 'fagioli)))))
+
+  (test/is
+   (= '((e _0) (_0 e))
+      (run* [r]
+            (fresh [x y]
+                   (membero 'e (list 'pasta x 'fagioli y))
+                   (== (list x y) r)))))
+
+  )
+

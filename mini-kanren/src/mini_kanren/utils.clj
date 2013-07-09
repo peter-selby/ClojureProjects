@@ -98,11 +98,12 @@
   [l x]
   (firsto l x))
 
-(defn membero
+;;; Already defined in the core
+#_(defn membero
   "Succeeds if x is a member of list l."
   [x l]
   (conde
-   ((emptyo l) u#)
+   ((emptyo l) u#) ; line unnecessary
    ((eq-caro l x) s#)
    (s# (fresh [d]
               (resto l d)
