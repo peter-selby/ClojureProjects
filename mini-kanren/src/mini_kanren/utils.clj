@@ -91,3 +91,19 @@
   "Succeeds if l is a list of twins."
   [l]
   (listofo twinso l))
+
+;;; Frame 3-54
+(defn eq-caro
+  "Succeeds if the car of l is x. Identical to 'firsto.'"
+  [l x]
+  (firsto l x))
+
+(defn membero
+  "Succeeds if x is a member of list l."
+  [x l]
+  (conde
+   ((emptyo l) u#)
+   ((eq-caro l x) s#)
+   (s# (fresh [d]
+              (resto l d)
+              (membero x d)))))

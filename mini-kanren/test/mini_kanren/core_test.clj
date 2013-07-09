@@ -546,4 +546,11 @@
            (fresh [w x y z]
                   (== (llist '(g g) (list 'e w) (list x y) z) out)
                   (listofo twinso out)))))
+
+  ;; Frame 3-57
+  (test/is
+   (= '(true)
+      (run* [q]
+            (membero 'olive '(virgin olive oil))
+            (== true q))))
 )
