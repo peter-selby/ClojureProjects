@@ -444,6 +444,8 @@
   ;; Frame 22: emptyo always succeeds against a fresh var:
   (test/is (= '(()) (run* [q] (emptyo q))))
 
-  #_(test/is (= '(((a b) (c d))) (run 1 [x] (lolo (llist '(a b) '(c d) x)))))
+  (test/is (=
+            '(())
+            (run 1 [x] (lolo (llist '(a b) '(c d) x)))))
   )
 
