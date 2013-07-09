@@ -72,3 +72,16 @@
                                (resto l d)
                                (loto d)))
    (s# u#)))
+
+;;; Frame 3-48
+(defn listofo
+  "Succeeds if predo, applied to every element of l, succeeds."
+  [predo l]
+  (conde
+   ((emptyo l) s#)
+   ((fresh [a]
+           (firsto l a)
+           (predo a)) (fresh [d]
+                             (resto l d)
+                             (listofo predo d)))
+   (s# u#)))
