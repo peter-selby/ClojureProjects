@@ -618,7 +618,7 @@
 
   ;; Frames 3-81 through 3-85
   (test/is
-   (= '(true true true)
+   (= '(true true)
       (run* [q] (pmembero 'tofu '(a b tofu d tofu)) (== q true))))
 
   )

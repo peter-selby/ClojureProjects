@@ -132,4 +132,17 @@
               (resto l d)
               (pmembero x d)))))
 
+;;; Frame 3-86
+(defn pmembero
+  "Succeeds if x is a member of proper list l, and produces all unique solutions"
+  [x l]
+  (conde
+   #_((emptyo l) u) ; line unnecessary
+   ((eq-caro l x) (resto l ()))
+   ((eq-caro l x) (fresh [a d]
+                         (resto l (llist a d))))
+   (s# (fresh [d]
+              (resto l d)
+              (pmembero x d)))))
+
 
