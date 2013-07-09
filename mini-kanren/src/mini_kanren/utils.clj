@@ -108,3 +108,28 @@
    (s# (fresh [d]
               (resto l d)
               (membero x d)))))
+
+;;; Frame 3-80
+(defn pmembero
+  "Succeeds if x is a member of proper list l."
+  [x l]
+  (conde
+   #_((emptyo l) u) ; line unnecessary
+   ((eq-caro l x) (resto l ()))
+   (s# (fresh [d]
+              (resto l d)
+              (pmembero x d)))))
+
+;;; Frame 3-83
+(defn pmembero
+  "Succeeds if x is a member of proper list l, and produces all solutions"
+  [x l]
+  (conde
+   #_((emptyo l) u) ; line unnecessary
+   ((eq-caro l x) (resto l ()))
+   ((eq-caro l x)  s#)
+   (s# (fresh [d]
+              (resto l d)
+              (pmembero x d)))))
+
+

@@ -598,5 +598,28 @@
                    (membero 'e (list 'pasta x 'fagioli y))
                    (== (list x y) r)))))
 
+  ;; Frame 3-76
+  (test/is
+   (= '((tofu . _0)
+        (_0 tofu . _1)
+        (_0 _1 tofu . _2)
+        (_0 _1 _2 tofu . _3)
+        (_0 _1 _2 _3 tofu . _4)))
+   (run 5 [l] (membero 'tofu l)))
+
+  ;; Frame 3-76
+  (test/is
+   (= '((tofu)
+        (_0 tofu)
+        (_0 _1 tofu)
+        (_0 _1 _2 tofu)
+        (_0 _1 _2 _3 tofu)))
+   (run 5 [l] (pmembero 'tofu l)))
+
+  ;; Frames 3-81 through 3-85
+  (test/is
+   (= '(true true true)
+      (run* [q] (pmembero 'tofu '(a b tofu d tofu)) (== q true))))
+
   )
 
