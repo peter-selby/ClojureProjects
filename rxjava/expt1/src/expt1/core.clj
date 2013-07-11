@@ -73,7 +73,7 @@
         ;; Use a promise for 'completed' so we can wait for it on
         ;; another thread:
         onCompletedCollector (promise    )]
-    (letfn [;; When observable sends a value, relay it to our agent:
+    (letfn [ ;; When observable sends a value, relay it to our agent:
             (collect-next      [item] (send onNextCollector (fn [state] (conj state item))))
             ;; If observable errors out, just set our exception;
             (collect-error     [excp] (reset!  onErrorCollector     excp))
@@ -82,7 +82,7 @@
             ;; In all cases, report out the back end with this:
             (report-collectors [    ]
               (identity ;; pdump
-               {;; Wait at most 1 second for the promise to complete;
+               { ;; Wait at most "wait-time" for the promise to complete;
                 ;; if it does not complete, then produce 'false'. We
                 ;; must wait on the onCompleted BEFORE waiting on the
                 ;; onNext because the agent's await-for in onNext only
@@ -235,7 +235,7 @@
 ;;; "distinctUntilChanged", but RxJava 0.9.0 doesn't seem to
 ;;; have them yet. We can fake them as follows:
 
-(-> (Observable/toObservable ["one" "two" "three"])
+(-> (from-seq ["one" "two" "three"])
     (.mapMany (comp from-seq string-explode))
 
     ;; The following two effect an implementation of "distinct".
@@ -258,7 +258,7 @@
       (.reduce #{} conj)
       (.mapMany from-seq)))
 
-(-> (Observable/toObservable ["one" "two" "three"])
+(-> (from-seq ["one" "two" "three"])
     (.mapMany (comp from-seq string-explode))
     distinct
     subscribe-collectors
@@ -284,7 +284,7 @@
 ;;; distinct-until-changed: we only need to remember one back. Still, to make
 ;;; the point:
 
-(-> (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
+(-> (from-seq ["onnnnne" "tttwo" "thhrrrrree"])
     (.mapMany (comp from-seq string-explode))
 
     ;; The following two effect "distinctUntilChanged".
@@ -310,7 +310,7 @@
 ;;; must be defined outside the mapMany and the function that mapMany applies.
 ;;; However, this solution will not materialize the entire input sequence.
 
-(let [exploded (-> (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
+(let [exploded (-> (from-seq ["onnnnne" "tttwo" "thhrrrrree"])
                    (.mapMany (comp from-seq string-explode)))
       ;; Must define this container outside the mapMany and the function
       ;; that napMany applies.
@@ -325,7 +325,7 @@
                          (ref-set last-container [x])
                          (return x)))))))
       subscribe-collectors
-      pdump))
+     pdump))
 
 ;;; Package and test:
 
@@ -338,10 +338,10 @@
                        (if (and l (= x l))
                          (Observable/empty)
                          (do
-                           (ref-set last-container [x])
+                            (ref-set last-container [x])
                            (return x))))))))))
 
-(->  (Observable/toObservable ["onnnnne" "tttwo" "thhrrrrree"])
+(->  (from-seq ["onnnnne" "tttwo" "thhrrrrree"])
      (.mapMany (comp from-seq string-explode))
      distinct-until-changed
      subscribe-collectors
@@ -350,7 +350,7 @@
 
 ;;; It's well-behaved on an empty input:
 
-(->  (Observable/toObservable [])
+(->  (from-seq [])
      (.mapMany (comp from-seq string-explode))
      distinct-until-changed
      subscribe-collectors
