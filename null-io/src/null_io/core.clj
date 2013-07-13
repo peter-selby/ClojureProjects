@@ -59,3 +59,5 @@
     (with-open [w (cjio/writer "output.txt")]
       (doseq [line answs] (.write w line)))
     ))
+
+(-main)
