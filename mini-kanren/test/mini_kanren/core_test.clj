@@ -676,4 +676,49 @@
       (run* [out]
             (fresh [x]
                    (memo 'tofu (list 'a 'b x 'd 'tofu 'e) out)))))
+  (test/is
+   (= (list '_0
+            '_0
+            (llist 'tofu '_0)
+            (llist '_0 'tofu '_1)
+            (llist '_0 '_1 'tofu '_2)
+            (llist '_0 '_1 '_2 'tofu '_3))
+      (run 6 (z)
+           (fresh [u]
+                  (memo 'tofu (llist 'a 'b 'tofu 'd 'tofu 'e z) u)))))
+  
+  ;; Frame 4-30
+  (test/is
+   (= '((a b d peas e))
+      (run 1 [out]
+           (fresh [y] (rembero 'peas
+                               (list 'a 'b y 'd 'peas 'e)
+                               out)))))
+
+  ;; Looks like clojure.logic is doing something more sophisticated
+  ;; than mini-Kanren does. Looking at the third inference,
+  ;; Clojure.logic infers that (rembero y (a b y d z e) is (a b d _0
+  ;; e) if ... looks like ... y (why is y _1?) is not a and y is not
+  ;; b, meaning that the first two inferences have been skipped. In
+  ;; the fourth inference, I think it's binding y to 'd, but it has an
+  ;; impossibility in its condition, namely (!= (_0 _0)). I'll leave
+  ;; this  a mystery for now.
+  (test/is
+   (= '((b a d _0 e)
+        (a b d _0 e)
+        ((a b d _0 e) :- (!= (_1 a)) (!= (_1 b)))
+        ((a b _0 d e) :- (!= (_0 a)) (!= (_0 b)) (!= (_0 _0)) (!= (_0 d))))
+      (run* [out]
+            (fresh [y z]
+                   (rembero y (list 'a 'b y 'd z 'e) out)))))
+
+  ;; Frame 4-49
+  ;; This mystery is getting deeper; this result isn't anything like
+  ;; the book's result.
+  (test/is
+   (= '((d d))
+      (run* [r]
+            (fresh [y z]
+                   (rembero y (list y 'd z 'e) (list y 'd 'e))
+                   (== (list y z) r)))))
 )

@@ -166,4 +166,17 @@
               (resto l d)
               (memo x d out)))))
 
+;;; Frame 4-24
+#_(defn rembero
+  "Succeeds when out equals l with the first occurrence of x removed."
+  [x l out]
+  (conde
+   ((emptyo l) (== () out))
+   ((eq-caro l x) (resto l out))
+   (s# (fresh [a d res]
+              (resto l d)
+              (rembero x d res)
+              (firsto l a)
+              (conso a res out)
+              ))))
 
