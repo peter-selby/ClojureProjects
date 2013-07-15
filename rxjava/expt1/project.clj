@@ -10,5 +10,9 @@
                  [org.slf4j/slf4j-log4j12           "1.7.5"]
                  [enlive                            "1.1.1"]
                  [org.clojure/data.json             "0.2.2"]
-                 [com.netflix.rxjava/rxjava-clojure "0.9.0"]]
+                 ;; [com.netflix.rxjava/rxjava-core    "0.9.1-SNAPSHOT"]
+                 ;; [com.netflix.rxjava/rxjava-clojure "0.9.1-SNAPSHOT"]
+                 [com.netflix.rxjava/rxjava-clojure "0.9.0"]
+                 ]
+  :repositories {"local" ~(str (.toURI (java.io.File. "maven_repository")))}
   :main expt1.core)
