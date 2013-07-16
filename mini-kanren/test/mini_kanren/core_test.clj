@@ -726,9 +726,11 @@
   ;; rembero2, in the file utils.clj, according to the guidelines in
   ;; Frame 4-24. TODO: examine the implementation of "rember" in
   ;; clojure.core/logic. 
-  (test/is (=
-             '([(d d) d d] [(d d) d d] [(_0 _0) _0 _0] [(e e) e e]
-               ) (run* [r y z]
-                       (rembero2 y (list y 'd z 'e) (list y 'd 'e))
-                       (== (list y z) r))))
-)
+  (test/is (= '(  [( d  d)  d  d]
+                  [( d  d)  d  d]
+                  [(_0 _0) _0 _0]
+                  [( e  e)  e  e]
+                  ) (run* [r y z]
+                  (rembero2 y (list y 'd z 'e) (list y 'd 'e))
+                  (== (list y z) r))))
+  )
