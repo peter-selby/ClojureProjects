@@ -42,5 +42,25 @@
 
 (println (map #(apply __ %) [[1 1] [3 12] [12 3] [5 9] [9 2] [9 12]]))
 
+(+ 2 3)
+(take 5 [1 2 3 4 5 6])
+(concat [2 3] [5 7])
+(take 5 (range 5 java.lang.Integer/MAX_VALUE 2))
+(for [cand [2 3 4]] cand)
+(every? even? [4 2])
+
+#(take % (let [primes
+               (concat
+                [2 3]
+                (for [cand (range 5 java.lang.Integer/MAX_VALUE 2)
+                      :when (every? (fn [p] ()))
+                      ]
+                  ))]
+           ))
+
+;; primes = [2, 3] ++ [ cand | cand <- [5, 7..], 
+;;                             all (\p -> notDvbl cand p)
+;;                                 (takeWhile (\p -> p*p < cand) primes) ]
+
 (defn -main [& args]
   (alter-var-root #'*read-eval* (constantly false)))
