@@ -48,19 +48,51 @@
 (take 5 (range 5 java.lang.Integer/MAX_VALUE 2))
 (for [cand [2 3 4]] cand)
 (every? even? [4 2])
+(range 5 100 2)
+(take 15 (iterate inc 2))
 
-#(take % (let [primes
-               (concat
-                [2 3]
-                (for [cand (range 5 java.lang.Integer/MAX_VALUE 2)
-                      :when (every? (fn [p] ()))
-                      ]
-                  ))]
-           ))
+(#(take % (letfn [(test [n primes]
+                     (every? (fn [p] (not= 0 (mod n p)))
+                             (take-while
+                              (fn [p] (<= (* p p) n))
+                              primes))
+                     )]
+             (reduce (fn [primes candidate]
+                       (if (test candidate primes)
+                         (conj primes candidate)
+                         primes
+                         ))
+                     [2 3]
+                     (range 5 1000 2))
+             )) 100)
+
+((fn [comb & hms]
+   (reduce
+    (fn [dest src]
+      (into dest
+            (reduce
+             (fn [hm [k v]]
+               (assoc hm k
+                      (let [curr (dest k)]
+                        (if curr (comb curr v) v))))
+             {}
+             src)))
+    hms))
+ *
+ {:a 2, :b 3, :c 4},
+ {:a 2},
+ {:b 2},
+ {:c 5}
+ )
+
+((fn [sent])
+ "Have a nice day.")
 
 ;; primes = [2, 3] ++ [ cand | cand <- [5, 7..], 
 ;;                             all (\p -> notDvbl cand p)
 ;;                                 (takeWhile (\p -> p*p < cand) primes) ]
+
+
 
 (defn -main [& args]
   (alter-var-root #'*read-eval* (constantly false)))
