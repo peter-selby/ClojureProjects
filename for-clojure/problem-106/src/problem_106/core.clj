@@ -1,5 +1,16 @@
 (ns problem-106.core
+  (:require clojure.string
+            clojure.pprint)
   (:gen-class))
+
+(defmacro pdump [x]
+  `(let [x# ~x]
+     (do (println "----------------")
+         (clojure.pprint/pprint '~x)
+         (println "~~>")
+         (clojure.pprint/pprint x#)
+         (println "----------------")
+         x#)))
 
 ;;;  ___         _    _             _  __   __ 
 ;;; | _ \_ _ ___| |__| |___ _ __   / |/  \ / / 
@@ -49,14 +60,108 @@
 (for [cand [2 3 4]] cand)
 (every? even? [4 2])
 
-#(take % (let [primes
-               (concat
-                [2 3]
-                (for [cand (range 5 java.lang.Integer/MAX_VALUE 2)
-                      :when (every? (fn [p] ()))
-                      ]
-                  ))]
-           ))
+(def zork
+  (fn [n] (take n (letfn [(primes []
+                           (lazy-seq
+                            (concat
+                             [2 3]
+                             (for [cand (range 5 java.lang.Integer/MAX_VALUE 2)
+                                   :when (every? (fn [p] (not= 0 (mod cand p)))
+                                                 (take-while
+                                                  (fn [p] (< (* p p) cand))
+                                                  (primes)))
+                                   ]
+                               cand
+                               ))))]
+                   (primes)
+                   ))))
+
+(def zork
+  (fn [n] (take n (letfn [(primes []
+                           (lazy-seq
+                            (concat
+                             [2 3]
+                             (for [cand (range 5 java.lang.Integer/MAX_VALUE 2)
+                                   :when (every? (fn [p] (not= 0 (mod cand p)))
+                                                 (take-while
+                                                  (fn [p] (< (* p p) cand))
+                                                  (primes)))
+                                   ]
+                               cand
+                               ))))]
+                   (primes)
+                   ))))
+
+
+(def driver-table
+  (pdump (map (partial zipmap [:chan :pl :driver-name :asin :prime :amount])
+              [[1000 23 :prod-cogs "B00012345" :p1 5]
+               [1000 23 :prod-cogs "B00012346" :p2 15]
+               [1000 23 :prod-cogs "B00012347" :p3 10]
+               [1100 24 :prod-rev  "B00012348" :p1 19]
+               ])))
+
+(def driver-mapping
+  "Maps accounts to drivers."
+  (pdump (map (partial zipmap [:chan :pl :account :driver-name :homo?])
+              [[1000 23 :prod-cogs :prod-cogs true]
+               [1000 23 :inv-val   :prod-cogs false]])))
+
+(defn normalize [amaps]
+  (let [total (apply + (map :amount amaps))]
+    (map
+     (fn [amap] (assoc amap :amount (/ (:amount amap) total)))
+     amaps)))
+
+(defn driver [driver-name chan pl]
+  (let [ripped-table
+        (filter (fn [line] (and (= driver-name (:driver-name line))
+                               (= chan        (:chan        line))
+                               (= pl          (:pl          line))))
+                driver-table)
+        ]
+    ripped-table))
+
+(def pnls
+  (pdump (map (partial zipmap [:chan :pl :account :amount])
+              [[1000 23 :prod-cogs 2500]
+               [1600 23 :inv-val   5000]
+               ])))
+
+(defn driver-spec [driver-name pnl]
+  (normalize (driver driver-name (:chan pnl) (:pl pnl))))
+
+(pdump (driver-spec :prod-cogs (first pnls)))
+
+
+
+(defn allocate [pnl driver-spec]
+  (map (fn [line]
+         (assoc line :amount (* (:amount pnl) (:amount line))))
+       driver-spec))
+
+(pdump (allocate (first pnls)
+                 (driver-spec :prod-cogs (first pnls))))
+(defn fact [n acc]
+  (if 
+    (< n 2N) 
+    acc
+    (recur (dec n) (* acc n))))
+
+(take 4 (drop 100 (letfn [(test [n primes]
+                            (every? (fn [p] (not= 0 (mod n p)))
+                                    (take-while
+                                     (fn [p] (<= (* p p) n))
+                                     primes))
+                            )]
+                    (reduce (fn [primes candidate]
+                              (if (test candidate primes)
+                                (conj primes candidate)
+                                primes
+                                ))
+                            [2 3]
+                            (range 5N (fact 1000N 2)))
+                    )))
 
 ;; primes = [2, 3] ++ [ cand | cand <- [5, 7..], 
 ;;                             all (\p -> notDvbl cand p)
