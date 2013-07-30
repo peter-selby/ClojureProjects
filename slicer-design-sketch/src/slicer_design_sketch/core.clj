@@ -1,4 +1,5 @@
 (ns slicer-design-sketch.core
+  (:require [clojure.test :as test])
   (:gen-class))
 
 (defmacro pdump [x]
@@ -9,6 +10,18 @@
          (clojure.pprint/pprint x#)
          (println "----------------")
          x#)))
+
+;;; These are dummies or mocks for Mohit's mapper
+(defn mp-to-channels      [mp])
+(defn gl-to-pls           [gl])
+(defn legal-entity-to-mps [le])
+
+(def proto-driver-table
+  (pdump (map (partial zipmap [:chan :pl :driver-name :prime :amount])
+              [[1000 23 :subscription-rev :p1 79]
+               [1000 23 :subscription-rev :p2  0]
+               [1000 23 :subscription-rev :p3 29]
+               ])))
 
 (def driver-table
   (pdump (map (partial zipmap [:chan :pl :driver-name :asin :prime :amount])
@@ -61,8 +74,9 @@
                  (driver-spec :prod-cogs (first pnls))))
 
 (defn -main
-  "I don't do a whole lot ... yet."
+  "Just run all tests."
   [& args]
   ;; work around dangerous default behaviour in Clojure
   (alter-var-root #'*read-eval* (constantly false))
-  (println "Hello, World!"))
+
+  (test/run-all-tests #"slicer-design-sketch.core-test"))
