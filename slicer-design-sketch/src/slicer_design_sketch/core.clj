@@ -1,4 +1,4 @@
-(ns slicer-design-sketch.core
+1(ns slicer-design-sketch.core
   (:require [clojure.test :as test])
   (:gen-class))
 
@@ -80,3 +80,5 @@
   (alter-var-root #'*read-eval* (constantly false))
 
   (test/run-all-tests #"slicer-design-sketch.core-test"))
+
+;testing Omar Mefire
