@@ -111,6 +111,7 @@
 
 (pdump (allocate (first pnls)
                  (driver-spec :prod-cogs (first pnls))))
+
 (defn fact [n acc]
   (if
     (< n 2N)
@@ -150,6 +151,24 @@
  {:b 2},
  {:c 5}
  )
+
+(defn sieve [xs]
+  (let [x (first xs)]
+       (cons x
+             (lazy-seq (sieve 
+                        (filter #(not= 0 (mod % x))
+                                (rest xs)))))))
+
+(def primes (sieve (cons 2 (iterate (partial + 2N) 3))))
+
+(pdump (take 5 (drop 1000 primes)))
+
+(def testo (fn [n] (letfn [(sieve [primes]
+                            (let [p (first primes)]
+                              (cons p (lazy-seq (sieve (filter #(not= 0 (mod % p))
+                                                               (rest primes)))))
+                              ))]
+                    (take n (sieve (cons 2 (iterate (partial + 2) 3)))))))
 
 ((fn [sent])
  "Have a nice day.")
